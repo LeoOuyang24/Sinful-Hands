@@ -16,7 +16,10 @@
 
 #include "include/player.h"
 #include "include/cards.h"
+#include "include/card_repo.h"
 #include "include/sprites.h"
+#include "include/actions.h"
+#include "include/options.h"
 
 #define PLATFORM_DESKTOP
 
@@ -38,13 +41,20 @@ int main(void)
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
 
     SpriteManager::loadSprites("./sprites");
+    CardsLookup::loadCards();
+
 
     Player player;
 
     for (int i = 0; i < 5; i++)
     {
-        player.hand.emplace_back(new Card{"BALLS",{5,3},{},GRAY});
+        player.hand.emplace_back(new Card("BALLS",{},GRAY,{5,4}));
     }
+
+    player.currentEnemy.reset(new EnemyCard("Evil man",{},{
+        Option{{Actions::AddCardsToHand({"Apple"})}},
+        Option{{Actions::AddCardsToDeck({"Apple"})}}
+        }));
 
     Interface interface;
 

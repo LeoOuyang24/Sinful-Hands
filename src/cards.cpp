@@ -1,5 +1,6 @@
 #include "../include/cards.h"
 #include "../include/sprites.h"
+#include "../include/card_repo.h"
 
 Texture2D Resources::getResourceIcon(size_t resourceName)
 {
@@ -16,23 +17,21 @@ Texture2D Resources::getResourceIcon(size_t resourceName)
     }
 }
 
-void Card::render(const Vector2& pos, float rotation, float scale)
+Card::Card(std::string name_, Image cardArt_, Color borderColor_, Resources resources_) : name(name_), cardArt(cardArt_), borderColor(borderColor_), resources(resources_)
+{
+
+}
+
+void Card::renderCentered(const Vector2& pos, float rotation, float scale)
 {
     float width = CARD_DIMEN.x*scale;
     float height = CARD_DIMEN.y*scale;
     
-    DrawRectanglePro({pos.x,pos.y, width, height},{0.5,0.5},rotation,borderColor);
+    DrawRectanglePro(getCardRect(pos,scale),{0.5,0.5},rotation,borderColor);
 
+    Rectangle cardFace = getCardFaceRect(pos,scale);
 
-    Rectangle cardFace = {pos.x + CARD_MARGIN.x*width,
-                        pos.y + CARD_MARGIN.y*height,
-                        width*CARD_FACE_DIMEN.x,
-                        height*CARD_FACE_DIMEN.y };
-
-    Rectangle cardBody = {pos.x + CARD_MARGIN.x*width,
-                          pos.y + (CARD_MARGIN.y*2+CARD_FACE_DIMEN.y)*height,
-                          width*CARD_BODY_DIMEN.x,
-                          height*CARD_BODY_DIMEN.y};
+    Rectangle cardBody = getCardBodyRect(pos,scale);
 
     const Color TAN = {169,175,0,255};
 
@@ -40,6 +39,17 @@ void Card::render(const Vector2& pos, float rotation, float scale)
     DrawRectangle(cardBody.x,cardBody.y,cardBody.width,cardBody.height,TAN);
     DrawText(name.c_str(),cardFace.x,cardFace.y + cardFace.height,10*scale,WHITE);
 
+    renderCardBody(cardBody, scale);
+}
+
+
+void Card::render(const Vector2& pos, float rotation, float scale)
+{
+    renderCentered({pos.x + CARD_DIMEN.x*scale/2, pos.y + CARD_DIMEN.y*scale/2},rotation,scale);
+}
+
+void Card::renderCardBody(const Rectangle& cardBody, float scale)
+{
     Vector2 cardBodyCenter = {cardBody.x + cardBody.width/2,cardBody.y + cardBody.height/2};
     
     int rendered = 0;
@@ -50,7 +60,7 @@ void Card::render(const Vector2& pos, float rotation, float scale)
         if (resources[i])
         {
             const int x = cardBodyCenter.x - 1.5*fontSize;
-            const int y = cardBody.y + (rendered + 0.5)*CARD_MARGIN.y*height;
+            const int y = cardBody.y + (rendered + 0.5)*CARD_MARGIN.y*CARD_DIMEN.y*scale;
             Texture2D icon = Resources::getResourceIcon(i);
             if (IsTextureValid(icon))
             {
@@ -64,5 +74,30 @@ void Card::render(const Vector2& pos, float rotation, float scale)
             rendered++;
         }
     }
+}
 
+
+void CardList::addCard(CardPtr newCard)
+{
+    if (newCard)
+    {
+        emplace_back(std::move(newCard));
+    }
+}
+
+void CardList::addCard(Card::CardIdentifier id)
+{
+    addCard(CardsLookup::getCard(id));
+}
+
+
+CardPtr CardList::removeCard(int index)
+{
+    if (index >= 0 && index < size())
+    {
+       CardPtr ptr =  std::move((*this)[index]);
+       erase(begin() + index);
+       return ptr;
+    }
+    return CardPtr();
 }

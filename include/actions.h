@@ -23,6 +23,10 @@ namespace Actions
 
     Action AddCardsToHand(const std::vector<Card::CardIdentifier>& ids);
     Action AddCardsToDeck(const std::vector<Card::CardIdentifier>& ids); 
+    Action Skip();
+    Action Sin();
+    Action Die();
+    Action TakeDamage(int damage = 1);
 
     typedef std::vector<Action> Consequences;
 };

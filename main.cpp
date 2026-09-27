@@ -20,6 +20,7 @@
 #include "include/sprites.h"
 #include "include/actions.h"
 #include "include/options.h"
+#include "include/globals.h"
 
 #define PLATFORM_DESKTOP
 
@@ -44,7 +45,7 @@ int main(void)
     CardsLookup::loadCards();
 
 
-    Player player;
+    Player& player = Globals::player;
 
     for (int i = 0; i < 5; i++)
     {
@@ -52,9 +53,11 @@ int main(void)
     }
 
     player.currentEnemy.reset(new EnemyCard("Evil man",{},{
-        Option{{Actions::AddCardsToHand({"Apple"})}},
-        Option{{Actions::AddCardsToDeck({"Apple"})}}
+        Option({Actions::AddCardsToHand({"Apple"})}),
+        Option({Actions::AddCardsToDeck({"Apple"})},{1})
         }));
+
+    player.addCardToDeck("Kind Grandma");
 
     Interface interface;
 

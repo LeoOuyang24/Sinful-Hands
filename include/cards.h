@@ -19,6 +19,7 @@ struct Resources : public std::array<int,3>
     };
 
     static Texture2D getResourceIcon(size_t resource);
+    static void renderResource(ResourceName name, size_t amount,const Vector2& start, size_t size, size_t spacing);
 };
 
 struct Player;
@@ -64,9 +65,10 @@ struct Card
 
 
     std::string name;
-    Resources resources;
+    Resources resources = {0,0,0};
     Image cardArt;
     Color borderColor = BLUE;    
+    bool isEnemy = false;
 
     Card(std::string name_, Image cardArt_, Color borderColor_ = GRAY, Resources resources_ = {});
 

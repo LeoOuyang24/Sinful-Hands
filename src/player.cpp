@@ -1,6 +1,7 @@
 #include "../include/player.h"
 #include "../include/options.h"
 #include "../include/card_repo.h"
+#include "../include/sprites.h"
 
 #include "raymath.h"
 
@@ -33,7 +34,14 @@ void Player::addCardToDeck(Card::CardIdentifier id)
     CardPtr ptr = CardsLookup::getCard(id);
     if (ptr)
     {
-        deck.emplace_back(std::move(ptr));
+        if (deck.size() > 1)
+        {
+            deck.insert(deck.begin() + rand()%(deck.size()-1) + 1,std::move(ptr));
+        }
+        else
+        {
+            deck.emplace_back(std::move(ptr));
+        }
     }       
 }
 
@@ -41,7 +49,7 @@ void Player::draw()
 {
     if (deck.size() > 0)
     {
-        currentEnemy = deck.removeCard(0);
+        currentEnemy = deck.removeCard(0);//.reset(static_cast<EnemyCard*>(topdeck.release()));
     }
     else
     {
@@ -82,6 +90,35 @@ EffectCard* Player::getEffect()
     return effects.size() > 0 && *effects.begin() < board.size() && *effects.begin() >= 0 ? static_cast<EffectCard*>(board[*effects.begin()].get()) : nullptr;
 }
 
+Resources Player::getBoardResources() const
+{
+    Resources total{};
+    for (auto& ptr : board)
+    {
+        if (ptr.get())
+        {
+            for (int i = 0; i < Resources::RESOURCE_NAME_SIZE; i ++)
+            {
+                total[i] += ptr->resources[i];
+            }
+        }
+    }
+    return total;
+}
+
+void Player::takeDamage(int damage)
+{
+    health -= damage;
+    if (health <= 0)
+    {
+        gameOver();
+    }
+}
+
+void Player::gameOver()
+{
+    dead = true;
+}
 
 Rectangle Interface::getRegion(const Vector2& topLeft, const Vector2& section)
 {
@@ -92,7 +129,7 @@ Rectangle Interface::getRegion(const Vector2& topLeft, const Vector2& section)
 
 Rectangle Interface::getIthHandCardRect(int i, const Rectangle& handRect)
 {
-    return {handRect.x + i*(Card::CARD_DIMEN.x + HAND_CARD_SEPARATION*handRect.width), handRect.y,Card::CARD_DIMEN.x,Card::CARD_DIMEN.y};
+    return {handRect.x + i*(Card::CARD_DIMEN.x + HAND_CARD_SEPARATION*handRect.width), handRect.y + handRect.height/2 - Card::CARD_DIMEN.y/2,Card::CARD_DIMEN.x,Card::CARD_DIMEN.y};
 }
 
 void Interface::handleRegion(CardList& lst, const Rectangle& rect)
@@ -131,7 +168,6 @@ void Interface::handleMouse(Player& player)
         else
         {        
             player.addCard(heldCard,false);
-
         }
     }
 
@@ -139,21 +175,13 @@ void Interface::handleMouse(Player& player)
     {
         EnemyCard* enemy = static_cast<EnemyCard*>(player.currentEnemy.get());
         Vector2 enemyPos = {deckRect.x + deckRect.width/2,deckRect.y + deckRect.height/2};
-        if (EffectCard* currentEffect = player.getEffect())
-        {
-            Rectangle cardBody = Card::getCardBodyRect(enemyPos,ENEMY_SCALE);
-            Option option = {currentEffect->effect};
-            option.render(cardBody);
-            if (CheckCollisionPointRec(GetMousePosition(),cardBody))
-            {
-                option.effect(player);
-            }
-        }
-        else if (enemy->handleInput(GetMousePosition(),player,enemyPos,ENEMY_SCALE))
+        if (enemy->handleInput(GetMousePosition(),player,enemyPos,ENEMY_SCALE))
         {
             player.draw();
         }
     }
+
+
 
 }
 
@@ -185,14 +213,11 @@ void Interface::update( Player& player)
     Rectangle playerHandRect = getRegion(HAND_TOP_LEFT,HAND_SECTION);
     Rectangle playerBoardRect = getRegion(BOARD_TOP_LEFT,BOARD_SECTION);
     Rectangle playerDeckRect = getRegion(DECK_TOP_LEFT,DECK_SECTION);
+    Rectangle playerStatsRect = getRegion(HEALTH_AND_HUNGER_TOP_LEFT,HEALTH_AND_HUNGER_SECTION);
 
     DrawRectangleLines(playerDeckRect.x,playerDeckRect.y,playerDeckRect.width,playerDeckRect.height,RED);
 
-    DrawRectangleLines(HEALTH_AND_HUNGER_TOP_LEFT.x*screenDimen.x,
-                        HEALTH_AND_HUNGER_TOP_LEFT.y*screenCenter.y,
-                        HEALTH_AND_HUNGER_SECTION.x*screenDimen.x,
-                        HEALTH_AND_HUNGER_SECTION.y*screenDimen.y,
-                        BLUE);
+    DrawRectangle(playerStatsRect.x,playerStatsRect.y,playerStatsRect.width,playerStatsRect.height,DARKGREEN);
 
     DrawRectangleLines(playerHandRect.x,playerHandRect.y,playerHandRect.width,playerHandRect.height,BLUE); 
 
@@ -201,17 +226,41 @@ void Interface::update( Player& player)
     renderCardList(player.hand,playerHandRect);
     renderCardList(player.board,playerBoardRect);
 
+    int x = playerStatsRect.x + playerStatsRect.width*.1f;
+    int y = playerStatsRect.y + playerStatsRect.height*.1f;
+    Texture2D heartIcon = SpriteManager::getSprite("health_icon.png");
+    Texture2D hungerIcon = SpriteManager::getSprite("hunger_icon.png");
+    for (int i = 0; i < player.health; i ++)
+    {
+        DrawTexturePro(heartIcon,
+            {0,0,heartIcon.width,heartIcon.height},
+            {x + i*.2*playerStatsRect.width,y, .2*playerStatsRect.width, .2*playerStatsRect.width},{0.5,0.5},0,WHITE);
+    }
+
+    for (int i = 0; i < player.hunger; i ++)
+    {
+        DrawTexturePro(hungerIcon,
+            {0,0,hungerIcon.width,hungerIcon.height},
+            {x + i*.2*playerStatsRect.width, y + .3*playerStatsRect.height, .2*playerStatsRect.width, .2*playerStatsRect.width},{0.5,0.5},0,WHITE);        
+    }
+
     if (heldCard)
     {
         heldCard->renderCentered(GetMousePosition(),0,1);
     }
-
 
     if (player.currentEnemy > 0)
     {
         player.currentEnemy->renderCentered({playerDeckRect.x + playerDeckRect.width/2, playerDeckRect.y + playerDeckRect.height/2},0,ENEMY_SCALE);
     }
     
+    if (player.dead)
+    {
+        Rectangle gameOver = {0.1*screenDimen.x,0.1*screenDimen.y,0.7*screenDimen.x,0.7*screenDimen.y};
+        DrawRectangle(gameOver.x,gameOver.y,gameOver.width,gameOver.height,GRAY);
+        DrawText("YOU DIED",gameOver.x + .1*screenDimen.x,gameOver.y + .1*screenDimen.y,100,RED);
+    }
+
     handleMouse(player);
 
 

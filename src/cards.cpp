@@ -17,6 +17,13 @@ Texture2D Resources::getResourceIcon(size_t resourceName)
     }
 }
 
+void Resources::renderResource(ResourceName name, size_t amount, const Vector2& start, size_t size, size_t spacing)
+{
+    Texture2D icon = getResourceIcon(name);
+    DrawTexturePro(icon,{0,0,icon.width,icon.height},{start.x,start.y,size,size},{0.5,0.5},0,WHITE);
+    DrawText(std::to_string(amount).c_str(),start.x+ spacing + size, start.y,size,BLACK);
+}
+
 Card::Card(std::string name_, Image cardArt_, Color borderColor_, Resources resources_) : name(name_), cardArt(cardArt_), borderColor(borderColor_), resources(resources_)
 {
 
@@ -61,16 +68,8 @@ void Card::renderCardBody(const Rectangle& cardBody, float scale)
         {
             const int x = cardBodyCenter.x - 1.5*fontSize;
             const int y = cardBody.y + (rendered + 0.5)*CARD_MARGIN.y*CARD_DIMEN.y*scale;
-            Texture2D icon = Resources::getResourceIcon(i);
-            if (IsTextureValid(icon))
-            {
-                DrawTexturePro(icon,
-                    {0,0,icon.width,icon.height},
-                    {x,y,fontSize,fontSize},
-                    {}, 0,
-                    WHITE);
-            }
-            DrawText(std::to_string(resources[i]).c_str(),x + 2*fontSize,y,fontSize,BLACK);
+            Resources::renderResource(static_cast<Resources::ResourceName>(i),resources[i],{x,y},fontSize,fontSize);
+
             rendered++;
         }
     }

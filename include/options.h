@@ -11,13 +11,15 @@ struct Option
 {
 
     Actions::Consequences consequences;
+    Resources resources = {0,0,0};
+
+    Option(const Actions::Consequences& cons_, const Resources resources_ = {});
 
     //true if this option can be selected
-    //virtual bool valid(const Player& player) = 0;
-    void effect(Player& player);
-    void render(const Rectangle& rect);
+    virtual bool valid(const Player& player);
+    virtual void effect(Player& player);
+    virtual void render(const Rectangle& rect);
 };
-
 
 struct EnemyCard  : public Card
 {

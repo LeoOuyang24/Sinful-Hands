@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "../include/cards.h"
 #include "../include/sprites.h"
 #include "../include/card_repo.h"
@@ -24,10 +26,29 @@ void Resources::renderResource(ResourceName name, size_t amount, const Vector2& 
     DrawText(std::to_string(amount).c_str(),start.x+ spacing + size, start.y,size,BLACK);
 }
 
-Card::Card(std::string name_, Image cardArt_, Color borderColor_, Resources resources_) : name(name_), cardArt(cardArt_), borderColor(borderColor_), resources(resources_)
+Card::Card(std::string name_, Resources resources_, std::string cardArtName) : name(name_), resources(resources_)
 {
+    if (cardArtName == "")
+    {
+        std::transform(name_.begin(), name_.end(), name_.begin(),
+            [](unsigned char c){ 
+                
+                if (c == ' ')
+                {
+                    return (int)'_';
+                }
+                return std::tolower(c); });
+
+
+        cardArt = SpriteManager::getSprite(name_ + ".png");
+    }
+    else
+    {
+        cardArt = SpriteManager::getSprite(cardArtName);
+    }
 
 }
+
 
 void Card::renderCentered(const Vector2& pos, float rotation, float scale)
 {
@@ -43,8 +64,13 @@ void Card::renderCentered(const Vector2& pos, float rotation, float scale)
     const Color TAN = {169,175,0,255};
 
     DrawRectangle(cardFace.x,cardFace.y,cardFace.width,cardFace.height,TAN);
+    if (IsTextureValid(cardArt))
+    {
+        DrawTexturePro(cardArt,{0,0,cardArt.width,cardArt.height},cardFace,{0.5,0.5},0,WHITE);
+    }
+
     DrawRectangle(cardBody.x,cardBody.y,cardBody.width,cardBody.height,TAN);
-    DrawText(name.c_str(),cardFace.x,cardFace.y + cardFace.height,10*scale,WHITE);
+    DrawText(name.c_str(),cardFace.x,cardFace.y + cardFace.height,5*scale,WHITE);
 
     renderCardBody(cardBody, scale);
 }
@@ -61,7 +87,7 @@ void Card::renderCardBody(const Rectangle& cardBody, float scale)
     
     int rendered = 0;
 
-    const int fontSize = 10*scale;
+    const int fontSize = 12*scale;
     for (size_t i = 0; i < resources.size(); i ++)
     {
         if (resources[i])

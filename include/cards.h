@@ -66,11 +66,11 @@ struct Card
 
     std::string name;
     Resources resources = {0,0,0};
-    Image cardArt;
-    Color borderColor = BLUE;    
+    Texture2D cardArt;
+    Color borderColor = BROWN;    
     bool isEnemy = false;
 
-    Card(std::string name_, Image cardArt_, Color borderColor_ = GRAY, Resources resources_ = {});
+    Card(std::string name_, Resources resources_ = {}, std::string cardArtName = "");
 
     void render(const Vector2& pos, float rotation, float scale);
     void renderCentered(const Vector2& pos, float rotation, float scale);
@@ -78,6 +78,7 @@ struct Card
 
     virtual void onEnterBoard(Player& player){};
     virtual void onEnterHand(Player& player){};
+
 };
 
 

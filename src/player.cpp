@@ -8,9 +8,9 @@
 
 void Player::addCard(CardPtr& ptr, bool addToHand)
 {
-    if (ptr)
+    if (ptr && hand.size() + board.size() < maxHandSize)
     {
-        if (addToHand && hand.size() < MAX_HAND_SIZE)
+        if (addToHand)
         {
             ptr->onEnterHand(*this);
             hand.addCard(std::move(ptr));
@@ -27,6 +27,15 @@ void Player::addCard(Card::CardIdentifier id, bool hand)
 {
     CardPtr ptr = CardsLookup::getCard(id);
     addCard(ptr,hand);
+}
+
+void Player::loseHandSize()
+{
+    maxHandSize = std::max(maxHandSize - 1,0);
+    if (hand.size() >= maxHandSize)
+    {
+        hand.resize(maxHandSize);
+    }
 }
 
 void Player::addCardToDeck(Card::CardIdentifier id)
@@ -120,6 +129,12 @@ void Player::gameOver()
     dead = true;
 }
 
+void Player::win()
+{
+    dead = true;
+    won = true;
+}
+
 Rectangle Interface::getRegion(const Vector2& topLeft, const Vector2& section)
 {
     Vector2 screenDimen = {GetScreenWidth(),GetScreenHeight()};
@@ -129,7 +144,7 @@ Rectangle Interface::getRegion(const Vector2& topLeft, const Vector2& section)
 
 Rectangle Interface::getIthHandCardRect(int i, const Rectangle& handRect)
 {
-    return {handRect.x + i*(Card::CARD_DIMEN.x + HAND_CARD_SEPARATION*handRect.width), handRect.y + handRect.height/2 - Card::CARD_DIMEN.y/2,Card::CARD_DIMEN.x,Card::CARD_DIMEN.y};
+    return {handRect.x + (i+1)*(Card::CARD_DIMEN.x + HAND_CARD_SEPARATION*handRect.width), handRect.y + handRect.height/2 - Card::CARD_DIMEN.y/2,Card::CARD_DIMEN.x,Card::CARD_DIMEN.y};
 }
 
 void Interface::handleRegion(CardList& lst, const Rectangle& rect)
@@ -148,7 +163,6 @@ void Interface::handleRegion(CardList& lst, const Rectangle& rect)
         }
     }  
 }
-
 
 void Interface::handleMouse(Player& player)
 {
@@ -215,19 +229,37 @@ void Interface::update( Player& player)
     Rectangle playerDeckRect = getRegion(DECK_TOP_LEFT,DECK_SECTION);
     Rectangle playerStatsRect = getRegion(HEALTH_AND_HUNGER_TOP_LEFT,HEALTH_AND_HUNGER_SECTION);
 
-    DrawRectangleLines(playerDeckRect.x,playerDeckRect.y,playerDeckRect.width,playerDeckRect.height,RED);
+    //DrawRectangleLines(playerDeckRect.x,playerDeckRect.y,playerDeckRect.width,playerDeckRect.height,RED);
 
-    DrawRectangle(playerStatsRect.x,playerStatsRect.y,playerStatsRect.width,playerStatsRect.height,DARKGREEN);
+    //DrawRectangle(playerStatsRect.x,playerStatsRect.y,playerStatsRect.width,playerStatsRect.height,DARKGREEN);
 
-    DrawRectangleLines(playerHandRect.x,playerHandRect.y,playerHandRect.width,playerHandRect.height,BLUE); 
+    //DrawRectangleLines(playerHandRect.x,playerHandRect.y,playerHandRect.width,playerHandRect.height,BLUE); 
 
-    DrawRectangleLines(playerBoardRect.x, playerBoardRect.y, playerBoardRect.width, playerBoardRect.height,PURPLE);
+    int total = 0;
+    for (int i =0 ; i < player.deck.size(); i ++)
+    {
+        if (player.deck[i] &&  player.deck[i]->name.size() >= 6 && player.deck[i]->name.substr(player.deck[i]->name.size() - 6,6) == "Spirit")
+        {
+            total ++;
+        }
+    }
 
-    renderCardList(player.hand,playerHandRect);
-    renderCardList(player.board,playerBoardRect);
+    std::string message = "Cards Left In Deck: " + std::to_string(player.deck.size()) + (total > 0 ? ". Vengeful Spirits: " + std::to_string(total) : "");
+    DrawText(message.c_str(),playerDeckRect.x,playerDeckRect.y,30,WHITE);
 
-    int x = playerStatsRect.x + playerStatsRect.width*.1f;
-    int y = playerStatsRect.y + playerStatsRect.height*.1f;
+    Texture2D boardSprite = SpriteManager::getSprite("board.png");
+    DrawTexturePro(boardSprite,
+        {0,0,boardSprite.width,boardSprite.height},
+        playerBoardRect,
+        {0.5,0.5},
+        0,
+        WHITE
+    );
+    //DrawRectangleLines(playerBoardRect.x, playerBoardRect.y, playerBoardRect.width, playerBoardRect.height,PURPLE);
+
+
+    int x = playerBoardRect.x + playerBoardRect.width*.01f;
+    int y = playerBoardRect.y + playerBoardRect.height*.9f - .2*playerStatsRect.width;
     Texture2D heartIcon = SpriteManager::getSprite("health_icon.png");
     Texture2D hungerIcon = SpriteManager::getSprite("hunger_icon.png");
     for (int i = 0; i < player.health; i ++)
@@ -237,12 +269,12 @@ void Interface::update( Player& player)
             {x + i*.2*playerStatsRect.width,y, .2*playerStatsRect.width, .2*playerStatsRect.width},{0.5,0.5},0,WHITE);
     }
 
-    for (int i = 0; i < player.hunger; i ++)
+    /*for (int i = 0; i < player.hunger; i ++)
     {
         DrawTexturePro(hungerIcon,
             {0,0,hungerIcon.width,hungerIcon.height},
             {x + i*.2*playerStatsRect.width, y + .3*playerStatsRect.height, .2*playerStatsRect.width, .2*playerStatsRect.width},{0.5,0.5},0,WHITE);        
-    }
+    }*/
 
     if (heldCard)
     {
@@ -253,15 +285,42 @@ void Interface::update( Player& player)
     {
         player.currentEnemy->renderCentered({playerDeckRect.x + playerDeckRect.width/2, playerDeckRect.y + playerDeckRect.height/2},0,ENEMY_SCALE);
     }
-    
+
+    message = std::to_string(player.hand.size() + player.board.size()) + "/" + std::to_string(player.maxHandSize);
+    DrawText(message.c_str(),playerHandRect.x + playerHandRect.width/2 - 10,playerHandRect.y,20,WHITE);
+
+    renderCardList(player.hand,playerHandRect);
+    renderCardList(player.board,playerBoardRect);
+    handleMouse(player);
+
     if (player.dead)
     {
         Rectangle gameOver = {0.1*screenDimen.x,0.1*screenDimen.y,0.7*screenDimen.x,0.7*screenDimen.y};
         DrawRectangle(gameOver.x,gameOver.y,gameOver.width,gameOver.height,GRAY);
-        DrawText("YOU DIED",gameOver.x + .1*screenDimen.x,gameOver.y + .1*screenDimen.y,100,RED);
+        if (player.won)
+        {
+            DrawText("You lived...",gameOver.x + .1*screenDimen.x,gameOver.y + .1*screenDimen.y,100,GREEN);
+        }
+        else
+        {
+            DrawText("YOU DIED",gameOver.x + .1*screenDimen.x,gameOver.y + .1*screenDimen.y,100,RED);
+        }
+        Rectangle quitButton = {gameOver.x + gameOver.width/2 - 50, gameOver.y + gameOver.height*.75 - 50, 100, 100};
+        if (CheckCollisionPointRec(GetMousePosition(),quitButton))
+        {
+            DrawRectangle(quitButton.x,quitButton.y,quitButton.width,quitButton.height,RED);
+            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+            {
+                exit(0);
+            }
+        }
+        else
+        {
+            DrawRectangle(quitButton.x,quitButton.y,quitButton.width,quitButton.height,LIGHTGRAY);
+        }
+         DrawText("Quit",quitButton.x,quitButton.y + quitButton.height/2 - 10,20,BLACK);
     }
 
-    handleMouse(player);
 
 
 }

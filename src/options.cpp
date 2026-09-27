@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "../include/options.h"
 #include "../include/player.h"
 #include "../include/sprites.h"
@@ -35,6 +37,13 @@ void Option::render(const Rectangle& rect)
     for (int i = 0; i < consequences.size(); i ++)
     {
         consequences[i].renderIcon({resultRect.x + width*(i + 1) + iconDimen*i,resultRect.y + margin*resultRect.height, iconDimen, iconDimen});
+        if (CheckCollisionPointRec(GetMousePosition(),rect) && consequences[i].tooltip)
+        {
+            Rectangle tooltipRect = {rect.x + rect.width, rect.y + (rect.height + 10)*i, rect.width, rect.height};
+            DrawRectangle(tooltipRect.x,tooltipRect.y,tooltipRect.width,tooltipRect.height,BLACK);
+            DrawRectangleLines(tooltipRect.x,tooltipRect.y,tooltipRect.width,tooltipRect.height,GRAY);
+            consequences[i].tooltip(tooltipRect);
+        }
     }
     
 }
@@ -65,9 +74,10 @@ bool Option::valid(const Player& player)
     return true;
 }
 
-EnemyCard::EnemyCard(std::string name_, Image image_, const std::vector<Option>& options_) : Card(name_, image_, BLACK), options(options_)
+EnemyCard::EnemyCard(std::string name_, const std::vector<Option>& options_) : Card(name_), options(options_)
 {
     isEnemy = true;
+    borderColor = DARKGRAY;
 }
 
 void EnemyCard::renderCardBody(const Rectangle& cardBody, float scale)
@@ -106,9 +116,7 @@ bool EnemyCard::handleInput(const Vector2& mousePos, Player& player, const Vecto
         Rectangle space = getIthOptionRect(cardPos,scale,i);
 
         if (i < options.size() && CheckCollisionPointRec(mousePos,space) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && options[i].valid(player))
-        {
-            options[i].effect(player);
-                        
+        {                        
             int total = options[i].resources[Resources::MONEY] + options[i].resources[Resources::ATTACK] + options[i].resources[Resources::FOOD];
             for (int j = 0; j < player.board.size() && total > 0;)
             {
@@ -119,6 +127,8 @@ bool EnemyCard::handleInput(const Vector2& mousePos, Player& player, const Vecto
                 
                 total = options[i].resources[Resources::MONEY] + options[i].resources[Resources::ATTACK] + options[i].resources[Resources::FOOD];
             }
+            options[i].effect(player);
+
             return true;
         }
 

@@ -4,6 +4,7 @@
 #include <fstream>
 #include <vector>
 #include <tuple>
+#include <time.h>
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -42,24 +43,30 @@ int main(void)
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
 
     SpriteManager::loadSprites("./sprites");
-    CardsLookup::loadCards();
 
+    srand(time(NULL));
+    CardsLookup::loadCards();
 
     Player& player = Globals::player;
 
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 2; i++)
     {
-        player.hand.emplace_back(new Card("BALLS",{},GRAY,{5,4}));
+        player.addCard("Potato", true);
+        player.addCard("Dagger",true);
+    }
+    player.addCard("Allowance",true);
+    player.addCard("Single Coin",true);
+
+    for (int i = 0; i < CardsLookup::startingDeck.size(); i ++)
+    {
+        player.addCardToDeck(CardsLookup::startingDeck[i]);
     }
 
-    player.currentEnemy.reset(new EnemyCard("Evil man",{},{
-        Option({Actions::AddCardsToHand({"Apple"})}),
-        Option({Actions::AddCardsToDeck({"Apple"})},{1})
-        }));
-
-    player.addCardToDeck("Kind Grandma");
+    player.currentEnemy = CardsLookup::getCard("Kind Vendor"); 
 
     Interface interface;
+
+    Texture2D bg = SpriteManager::getSprite("background.png");
 
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
@@ -77,6 +84,7 @@ int main(void)
         BeginDrawing();
 
             ClearBackground(WHITE);
+            DrawTexturePro(bg,{0,0,bg.width,bg.height},{0,0,screenDimen.x,screenDimen.y},{0.5,0.5},0,WHITE);
                 
             interface.update(player);
 

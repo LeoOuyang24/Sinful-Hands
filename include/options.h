@@ -40,7 +40,7 @@ struct EnemyCard  : public Card
         return {cardBody.x,cardBody.y + i*ratio*cardBody.height,cardBody.width,cardBody.height*ratio};
     }
 
-    EnemyCard(std::string name_, Image image_, const std::vector<Option>& options_);
+    EnemyCard(std::string name_, const std::vector<Option>& options_);
     void renderCardBody(const Rectangle& cardBody, float scale);
 
     //handle user input, returns trues if an option has been successfully selected

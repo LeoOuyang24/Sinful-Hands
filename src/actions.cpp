@@ -1,6 +1,7 @@
 #include "../include/actions.h"
 #include "../include/player.h"
 #include "../include/card_repo.h"
+#include "../include/sequencer.h"
 #include "../include/sprites.h"
 
 Actions::Action Actions::AddCardsToHand(const std::vector<Card::CardIdentifier>& ids)
@@ -101,6 +102,13 @@ Actions::Action Actions::Sin()
             player.addCardToDeck("Wrathful Spirit");
             player.addCardToDeck("Famished Spirit");
             player.addCardToDeck("Greedy Spirit");
+            Sequences::addSequence([start=GetTime()]()
+            {
+                float lerp = GetTime() - start;
+                DrawRectangle(0,0,GetScreenWidth(),GetScreenHeight(),{120,0,0,255*(std::max(0.0f,1 - lerp/2))});
+
+                return lerp > 2;
+            });
         },
         [](const Rectangle& rect){
             DrawText("Commit a vile sin.\n3 angry spirits\nwill haunt you!",rect.x, rect.y, TooltipFont, WHITE);

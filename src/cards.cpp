@@ -47,6 +47,11 @@ Card::Card(std::string name_, Resources resources_, std::string cardArtName) : n
         cardArt = SpriteManager::getSprite(cardArtName);
     }
 
+    if (!IsTextureValid(cardArt))
+    {
+        std::cerr << "WARNING: Missing sprite for: " << name << "\n";
+    }
+
 }
 
 
@@ -70,7 +75,7 @@ void Card::renderCentered(const Vector2& pos, float rotation, float scale)
     }
 
     DrawRectangle(cardBody.x,cardBody.y,cardBody.width,cardBody.height,TAN);
-    DrawText(name.c_str(),cardFace.x,cardFace.y + cardFace.height,5*scale,WHITE);
+    DrawText(name.c_str(),cardFace.x,cardFace.y + cardFace.height + 2.5*scale,5*scale,WHITE);
 
     renderCardBody(cardBody, scale);
 }

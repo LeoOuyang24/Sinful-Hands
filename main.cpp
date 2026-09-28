@@ -22,6 +22,7 @@
 #include "include/actions.h"
 #include "include/options.h"
 #include "include/globals.h"
+#include "include/sequencer.h"
 
 #define PLATFORM_DESKTOP
 
@@ -63,6 +64,7 @@ int main(void)
     }
 
     player.currentEnemy = CardsLookup::getCard("Kind Vendor"); 
+    player.deck.insert(player.deck.begin(),CardsLookup::getCard("Castle Gates"));
 
     Interface interface;
 
@@ -79,6 +81,14 @@ int main(void)
         }
         while(Frames::hasFramesLeft());
 
+        if (IsKeyPressed(KEY_SPACE))
+        {
+            for (int i = 0; i < player.deck.size(); i ++)
+            {
+                std::cout << player.deck[i]->name << "\n";
+            }
+        }
+
         // Draw
         //----------------------------------------------------------------------------------
         BeginDrawing();
@@ -87,6 +97,8 @@ int main(void)
             DrawTexturePro(bg,{0,0,bg.width,bg.height},{0,0,screenDimen.x,screenDimen.y},{0.5,0.5},0,WHITE);
                 
             interface.update(player);
+
+            Sequences::update();
 
             DrawFPS(10, 10);
 

@@ -2,6 +2,7 @@
 #include "../include/options.h"
 #include "../include/card_repo.h"
 #include "../include/sprites.h"
+#include "../include/sequencer.h"
 
 #include "raymath.h"
 
@@ -45,7 +46,15 @@ void Player::addCardToDeck(Card::CardIdentifier id)
     {
         if (deck.size() > 1)
         {
-            deck.insert(deck.begin() + rand()%(deck.size()-1) + 1,std::move(ptr));
+            int random = rand()%(deck.size()+1);
+            if (random > deck.size()) //new last card
+            {
+                deck.push_back(std::move(ptr));
+            }
+            else //insert somewhere before the last card
+            {
+                deck.insert(deck.begin() + random,std::move(ptr));
+            }
         }
         else
         {
@@ -191,12 +200,28 @@ void Interface::handleMouse(Player& player)
         Vector2 enemyPos = {deckRect.x + deckRect.width/2,deckRect.y + deckRect.height/2};
         if (enemy->handleInput(GetMousePosition(),player,enemyPos,ENEMY_SCALE))
         {
+            Sequences::addSequence([start=GetTime(),enemyName = enemy->name,startPos = enemyPos]()
+            {   
+                if (GetTime() - start > 1)
+                {
+                    return true;
+                }
+                else
+                {
+                    //fetch a temporary copy of an enemy card for rendering
+                    //super turbo ass solution
+                    CardPtr tempRender = CardsLookup::getCard(enemyName);
+                    if (tempRender)
+                    {
+                        tempRender->renderCentered(startPos + (Vector2(GetScreenWidth(),startPos.y) - startPos)*(GetTime() - start)/1.0f,0,ENEMY_SCALE);
+                    }
+                }
+                return false;
+            });
             player.draw();
+
         }
     }
-
-
-
 }
 
 void Interface::renderCardList(const CardList& lst, const Rectangle& rect)
@@ -318,7 +343,7 @@ void Interface::update( Player& player)
         {
             DrawRectangle(quitButton.x,quitButton.y,quitButton.width,quitButton.height,LIGHTGRAY);
         }
-         DrawText("Quit",quitButton.x,quitButton.y + quitButton.height/2 - 10,20,BLACK);
+         DrawText("Quit",quitButton.x + 10,quitButton.y + quitButton.height/2 - 10,20,BLACK);
     }
 
 

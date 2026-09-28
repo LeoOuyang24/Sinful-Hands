@@ -1,3 +1,5 @@
+#include <algorithm>
+#include <random>
 
 #include "../include/card_repo.h"
 #include "../include/options.h"
@@ -31,7 +33,7 @@ void CardsLookup::loadCards()
             Option({Actions::Win()},{0,0,20}),
             Option({Actions::AddCardsToDeck({"Castle Gates"})},{})       
         }
-    })),true);
+    })));
 
     addCard(*(new EnemyCard("Kind Vendor",
         {
@@ -92,7 +94,7 @@ void CardsLookup::loadCards()
             {
                 Option({Actions::Skip()},{0,4,0}),
                 Option({Actions::AddCardsToDeck({"Poorly Drawn Bandit"})},{0,0,1}),
-                Option({Actions::Skip(),Actions::TakeDamage(1)},{})
+                Option({Actions::AddCardsToDeck({"Poorly Drawn Bandit"}),Actions::TakeDamage(1)},{})
             }
     )),true);
     addCard(*(new EnemyCard("Religious Cow",
@@ -162,8 +164,8 @@ void CardsLookup::loadCards()
     )),true);
     addCard(*(new EnemyCard("Trapped Chest",
             {
-            Option({Actions::AddCardsToHand({"Allowance","Allowance"})},{0,3,0}),
-            Option({Actions::AddCardsToDeck({"Treasure Map"})},{0,3,0}),
+            Option({Actions::AddCardsToHand({"Allowance","Allowance"}),Actions::TakeDamage()}),
+            Option({Actions::AddCardsToDeck({"Treasure Map"}),Actions::TakeDamage()}),
             Option({Actions::Skip()},{})
         }
     )),true);
@@ -201,7 +203,7 @@ void CardsLookup::loadCards()
     )));
     addCard(*(new EnemyCard("Demon",
         {
-            Option({Actions::TakeDamage(2)},{}),
+            Option({Actions::TakeDamage(),Actions::TakeDamage(),Actions::TakeDamage()},{}),
             Option({Actions::Sin(),Actions::Sin(),Actions::Sin()},{}),
             Option({Actions::AddCardsToHand({"Demon Heart","Diamond","Sword"})},{0,15,0})
         }
@@ -237,7 +239,7 @@ void CardsLookup::loadCards()
 
     addCard(*(new EnemyCard("Holy Fountain",
         {
-            Option({Actions::Heal(3)}),
+            Option({Actions::Sin(),Actions::Heal(3)}),
             Option({Actions::AddCardsToHand({"Allowance","Potato","Dagger"})}),
             Option({Actions::AddCardsToDeck({"Exorcist","Exorcist"})})        
         }        
@@ -253,7 +255,7 @@ void CardsLookup::loadCards()
     addCard(*(new EnemyCard("Mysterious Egg",
         {
             Option({Actions::AddCardsToHand({"Omelette"})}),
-            Option({Actions::Sin(),Actions::Heal(2)}),
+            Option({Actions::Sin(),Actions::Heal(1)}),
             Option({Actions::AddCardsToDeck({"Phoenix"})})
         }
     )),true);
@@ -261,14 +263,14 @@ void CardsLookup::loadCards()
     addCard(*(new EnemyCard("Phoenix",
         {
             Option({Actions::Cleanse("Greedy Spirit")}),
-            Option({Actions::Heal(3)}),
+            Option({Actions::Heal(1)}),
             Option({Actions::AddCardsToHand({"Sharp Claws","Sharp Claws"})})
         }
     )));
 
     addCard(*(new EnemyCard("Cursed Idol",
         {
-            Option({Actions::Heal(1),Actions::LoseHand()}),
+            Option({Actions::Heal(1),Actions::LoseHand(),Actions::AddCardsToDeck({"Malicious Idol"})}),
             Option({Actions::Skip()},{0,1,0}),
             Option({Actions::Sin()})
         }
@@ -276,7 +278,7 @@ void CardsLookup::loadCards()
 
     addCard(*(new EnemyCard("Malicious Idol",
         {
-            Option({Actions::Heal(1),Actions::LoseHand()}),
+            Option({Actions::Heal(1),Actions::LoseHand(),Actions::AddCardsToDeck({"Consuming Idol"})}),
             Option({Actions::Sin()},{0,5,0})
         }
     )));
@@ -289,8 +291,94 @@ void CardsLookup::loadCards()
         }
     )));
 
+    addCard(*(new EnemyCard("Cameo Appearance",
+        {   
+            Option({Actions::AddCardsToHand({"Boulderfist"})},{0,0,3}),
+            Option({Actions::Sin(),Actions::Sin(),Actions::AddCardsToHand({"Pot of Greed"})},{0,0,3}),
+            Option({Actions::AddCardsToHand({"Black Goat"})})
+        }
+    )),true);
+
+    addCard(*(new EnemyCard("Pestilence",
+        {   
+            Option({Actions::AddCardsToDeck({"Locust","Locust"})}),
+            Option({Actions::Skip()},{2,0,0}),
+            Option({Actions::AddCardsToHand({"Trained Locust"})},{4,0,0})
+        }
+    )),true);
+
+    addCard(*(new EnemyCard("Locust",
+        {   
+            Option({Actions::AddCardsToDeck({"Locust","Locust"}),Actions::TakeDamage()},{}),
+            Option({Actions::Skip()},{0,0,4}),
+            Option({Actions::AddCardsToHand({"Trained Locust"})},{4,0,0})
+        } 
+    )));
+
+    addCard(*(new EnemyCard("Dagger Subscription",
+        {   
+            Option({Actions::AddCardsToDeck({"Dagger Subscription"}),Actions::AddCardsToHand({"Dagger"})},{0,0,2}),
+            Option({Actions::AddCardsToDeck({"Premium Membership"})},{0,0,2}),
+            Option({Actions::Skip()})
+        }
+    )),true);
+
+    addCard(*(new EnemyCard("Premium Membership",
+        {   
+            Option({Actions::AddCardsToDeck({"Dagger Subscription"}),Actions::AddCardsToHand({"Sword"})},{}),
+            Option({Actions::AddCardsToDeck({"Premium Membership"}),Actions::AddCardsToHand({"Sword"})},{0,0,2}),
+            Option({Actions::Skip()})
+        }
+    )));
+
+    addCard(*(new EnemyCard("The Red Cross",
+        {   
+            Option({Actions::TakeDamage(),Actions::AddCardsToHand({"Dagger","Dagger"})},{}),
+            Option({Actions::TakeDamage(),Actions::AddCardsToHand({"Potato","Potato"})},{}),
+            Option({Actions::Skip()})
+        }
+    )),true);
+
+    addCard(*(new EnemyCard("Piggy Banker",
+        {   
+            Option({Actions::AddCardsToHand({"Allowance"})},{}),
+            Option({Actions::AddCardsToHand({"Allowance","Allowance"})},{0,3,0}),
+            Option({Actions::AddCardsToDeck({"Investment"})},{0,0,3})
+        }
+    )),true);
+
+    addCard(*(new EnemyCard("Investment",
+        {   
+            Option({Actions::AddCardsToDeck({"Big Investment"})},{0,0,3}),
+            Option({Actions::AddCardsToHand({"Emerald","Single Coin"})},{})
+        }        
+    )));
+
+    addCard(*(new EnemyCard("Big Investment",
+        {   
+            Option({Actions::AddCardsToDeck({"Bigger Investment"})},{0,0,3}),
+            Option({Actions::AddCardsToHand({"Diamond","Allowance"})},{})
+        }        
+    )));
+    addCard(*(new EnemyCard("Bigger Investment",
+        {   
+            Option({Actions::AddCardsToDeck({"Biggest Investment"})},{0,0,3}),
+            Option({Actions::AddCardsToHand({"Diamond","Diamond"})},{})
+        }        
+    )));
+
+    addCard(*(new EnemyCard("Biggest Investment",
+        {   
+            Option({Actions::AddCardsToHand({"Diamond","Diamond","Diamond"})},{})
+        }        
+    )));
+
+
+
+
+
     addCard(*(new Card("Potato",{3,0,0})));
-    addCard(*(new Card("Apple",{1,0,0})));
+    addCard(*(new Card("Apple",{1,0,0},"food_resource.png")));
     addCard(*(new Card("Dagger",{0,3,0})));
     addCard(*(new Card("Dogshit Dagger",{0,1,0})));
     addCard(*(new Card("Sharp Claws",{0,5,0})));
@@ -306,7 +394,12 @@ void CardsLookup::loadCards()
     addCard(*(new Card("Diamond",{0,0,10})));
     addCard(*(new Card("Demon Heart",{666,666,666})));
     addCard(*(new Card("Omelette",{8,0,5})));
+    addCard(*(new Card("Black Goat",{666,0,0})));
+    addCard(*(new Card("Boulderfist",{0,6,7})));
+    addCard(*(new Card("Pot of Greed",{0,0,15})));
+    addCard(*(new Card("Trained Locust",{0,2,0})));
 
+    std::shuffle(startingDeck.begin(),startingDeck.end(), std::default_random_engine(time(NULL)));
 }
 
 void CardsLookup::addCard(Card& card, bool addToDeck)

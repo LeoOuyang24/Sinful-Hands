@@ -58,8 +58,8 @@ struct Interface
 
     static constexpr Vector2 HAND_SECTION = {0.8,0.15f};
     static constexpr Vector2 HAND_TOP_LEFT = {0, 1 - MARGINS.y - HAND_SECTION.y};
-    static constexpr Vector2 DECK_SECTION = {0.5f,0.45f};
-    static constexpr Vector2 DECK_TOP_LEFT = {.2f,MARGINS.y + .01};
+    static constexpr Vector2 DECK_SECTION = {0.7f,0.4f};
+    static constexpr Vector2 DECK_TOP_LEFT = {.1f,MARGINS.y + .01};
     static constexpr Vector2 HEALTH_AND_HUNGER_SECTION = {0.2f,HAND_TOP_LEFT.y - DECK_TOP_LEFT.y - DECK_SECTION.y};
     static constexpr Vector2 HEALTH_AND_HUNGER_TOP_LEFT = {MARGINS.x, 0.5f};
     static constexpr Vector2 BOARD_TOP_LEFT = {.5 - .35, 

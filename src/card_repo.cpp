@@ -29,204 +29,204 @@ void CardsLookup::loadCards()
 {
     addCard(*(new EnemyCard("Castle Gates",{
         {
-            Option({Actions::Win()},{0,20,0}),
-            Option({Actions::Win()},{0,0,20}),
-            Option({Actions::AddCardsToDeck({"Castle Gates"})},{})       
+            Option({Actions::Win()},Resources{0,20,0}),
+            Option({Actions::Win()},Resources{0,0,20}),
+            Option({Actions::AddCardsToDeck({"Castle Gates"})})       
         }
     })));
 
     addCard(*(new EnemyCard("Kind Vendor",
         {
-            Option({Actions::AddCardsToHand({"Apple"})},{}),
-            Option({Actions::AddCardsToHand({"Apple","Potato"})},{0,0,3}),
-            Option({Actions::Sin(),Actions::AddCardsToHand({"Apple","Potato"})},{})
+            Option({Actions::AddCardsToHand({"Apple"})},Resources{}),
+            Option({Actions::AddCardsToHand({"Apple","Potato"})},CardVerifier("Dagger")),
+            Option({Actions::Sin(),Actions::AddCardsToHand({"Apple","Potato"})},Resources{0,0,3})
         })));
 
     
     addCard(*(new EnemyCard("Wrathful Spirit",
-                {Option({Actions::Skip()},{0,5,0}),
-                Option({Actions::Sin(),Actions::TakeDamage(1)},{})}
+                {Option({Actions::Skip()},Resources{0,5,0}),
+                Option({Actions::Sin(),Actions::TakeDamage(1)},Resources{})}
                 )));
     addCard(*(new EnemyCard("Famished Spirit",
-                {Option({Actions::Skip()},{5,0,0}),
-                Option({Actions::Sin(),Actions::TakeDamage(1)},{})}
+                {Option({Actions::Skip()},Resources{5,0,0}),
+                Option({Actions::Sin(),Actions::TakeDamage(1)},Resources{})}
                 )));
     addCard(*(new EnemyCard("Greedy Spirit",
-                {Option({Actions::Skip()},{0,0,5}),
-                Option({Actions::Sin(),Actions::TakeDamage(1)},{})}
+                {Option({Actions::Skip()},Resources{0,0,5}),
+                Option({Actions::Sin(),Actions::TakeDamage(1)},Resources{})}
                 )));
 
     addCard(*(new EnemyCard("Distant Dragon",
             {
-                Option({Actions::Skip()},{0,5,0}),
-                Option({Actions::AddCardsToDeck({"Looming Dragon"})},{})    
+                Option({Actions::Skip()},Resources{0,5,0}),
+                Option({Actions::AddCardsToDeck({"Looming Dragon"})},Resources{})    
             }
             )),true);
     addCard(*(new EnemyCard("Looming Dragon",
             {
-                Option({Actions::Skip()},{0,10,0}),
-                Option({Actions::AddCardsToDeck({"Hungry Dragon"})},{})    
+                Option({Actions::Skip()},Resources{0,10,0}),
+                Option({Actions::AddCardsToDeck({"Hungry Dragon"})},Resources{})    
             }
             )));
 
     addCard(*(new EnemyCard("Hungry Dragon",
             {
-                Option({Actions::Skip()},{0,15,0}),
-                Option({Actions::Die()},{})    
+                Option({Actions::Skip()},Resources{0,15,0}),
+                Option({Actions::Die()},Resources{})    
             }
             )));
     addCard(*(new EnemyCard("Border Guard",
             {
-                Option({Actions::Skip()},{0,0,10}),
-                Option({Actions::Skip()},{0,8,0}),
-                Option({Actions::Skip(),Actions::TakeDamage(1)},{})
+                Option({Actions::Skip()},Resources{0,0,10}),
+                Option({Actions::Skip()},Resources{0,8,0}),
+                Option({Actions::Skip(),Actions::TakeDamage(1)},Resources{})
             }
     )),true);
 
     addCard(*(new EnemyCard("Exorcist",
         {
-            Option({Actions::Cleanse("Wrathful Spirit")},{}),
-            Option({Actions::Cleanse("Famished Spirit")},{}),
-            Option({Actions::Cleanse("Greedy Spirit")},{}),
+            Option({Actions::Cleanse("Wrathful Spirit")},Resources{}),
+            Option({Actions::Cleanse("Famished Spirit")},Resources{}),
+            Option({Actions::Cleanse("Greedy Spirit")},Resources{}),
         }
     )),true);
     addCard(*(new EnemyCard("Poorly Drawn Bandit",
             {
                 Option({Actions::Skip()},{0,4,0}),
-                Option({Actions::AddCardsToDeck({"Poorly Drawn Bandit"})},{0,0,1}),
-                Option({Actions::AddCardsToDeck({"Poorly Drawn Bandit"}),Actions::TakeDamage(1)},{})
+                Option({Actions::AddCardsToDeck({"Poorly Drawn Bandit"})},Resources{0,0,1}),
+                Option({Actions::AddCardsToDeck({"Poorly Drawn Bandit"}),Actions::TakeDamage(1)},Resources{})
             }
     )),true);
     addCard(*(new EnemyCard("Religious Cow",
         {
-            Option({Actions::AddCardsToHand({"Milk"})},{}),
-            Option({Actions::AddCardsToHand({"Steak"})},{0,3,0}),
-            Option({Actions::AddCardsToDeck({"Holy Cow"})},{})
+            Option({Actions::AddCardsToHand({"Milk"})},Resources{}),
+            Option({Actions::AddCardsToHand({"Steak"})},Resources{0,3,0}),
+            Option({Actions::AddCardsToDeck({"Holy Cow"})},Resources{})
         } 
     )),true);
     addCard(*(new EnemyCard("Holy Cow",
         {
-            Option({Actions::AddCardsToHand({"Golden Apple"})},{}),
-            Option({Actions::AddCardsToHand({"Sharp Cheddar"})},{}),
+            Option({Actions::AddCardsToHand({"Golden Apple"})},Resources{}),
+            Option({Actions::AddCardsToHand({"Sharp Cheddar"})},Resources{}),
             Option({Actions::Sin(),Actions::AddCardsToHand({"Golden Apple","Sharp Cheddar"})})
         }
     )));
     addCard(*(new EnemyCard("Starving Wolf",
         {
-            Option({Actions::TakeDamage(1)},{}),
-            Option({Actions::AddCardsToHand({"Allowance"})},{0,3,0}),
-            Option({Actions::AddCardsToDeck({"Grateful Wolf"})},{3,0,0})
+            Option({Actions::TakeDamage(1)}),
+            Option({Actions::AddCardsToHand({"Allowance"})},Resources{0,3,0}),
+            Option({Actions::AddCardsToDeck({"Grateful Wolf"})},Resources{3,0,0})
         })),true);
     addCard(*(new EnemyCard("Grateful Wolf",
         {
-            Option({Actions::AddCardsToHand({"Sword"})},{}),
-            Option({Actions::AddCardsToHand({"Steak"})},{}),
+            Option({Actions::AddCardsToHand({"Sword"})}),
+            Option({Actions::AddCardsToHand({"Steak"})}),
             Option({Actions::Heal(1)}),
         }
     )));
 
     addCard(*(new EnemyCard("Orphans",
         {
-            Option({Actions::Skip()},{0,0,2}),
-            Option({Actions::Skip()},{2,0,0}),
-            Option({Actions::Sin(),Actions::AddCardsToHand({"Mystery Meat","Mystery Meat"})},{})            
+            Option({Actions::Skip()},Resources{0,0,2}),
+            Option({Actions::Skip()},Resources{2,0,0}),
+            Option({Actions::Sin(),Actions::AddCardsToHand({"Mystery Meat","Mystery Meat"})})            
         }
     )),true);
     
     addCard(*(new EnemyCard("Blacksmith",
         {
-            Option({Actions::AddCardsToHand({"Dagger"})},{}),
-            Option({Actions::AddCardsToHand({"Sword"})},{0,0,5}),
-            Option({Actions::Sin(),Actions::AddCardsToHand({"Dagger","Sword"})},{})
+            Option({Actions::AddCardsToHand({"Dagger"})}),
+            Option({Actions::AddCardsToHand({"Sword"})},Resources{0,0,5}),
+            Option({Actions::Sin(),Actions::AddCardsToHand({"Dagger","Sword"})})
         }
     )),true);
 
     addCard(*(new EnemyCard("Joyful Genie",
         {
-            Option({Actions::AddCardsToHand({"Dagger","Dagger","Dagger"})},{}),
-            Option({Actions::AddCardsToHand({"Potato","Potato","Potato"})},{}),
-            Option({Actions::AddCardsToHand({"Allowance","Allowance","Allowance"})},{})
+            Option({Actions::AddCardsToHand({"Dagger","Dagger","Dagger"})}),
+            Option({Actions::AddCardsToHand({"Potato","Potato","Potato"})}),
+            Option({Actions::AddCardsToHand({"Allowance","Allowance","Allowance"})})
         }
     )),true);
     addCard(*(new EnemyCard("Giving Tree",
         {
-            Option({Actions::AddCardsToHand({"Apple"})},{}),
-            Option({Actions::AddCardsToHand({"Apple","Apple","Apple"})},{0,3,0}),
-            Option({Actions::Heal(1)},{})
+            Option({Actions::AddCardsToHand({"Apple"})}),
+            Option({Actions::AddCardsToHand({"Apple","Apple","Apple"})},Resources{0,3,0}),
+            Option({Actions::Heal(1)})
         }
     )),true);
     addCard(*(new EnemyCard("Locked Chest",
         {
-            Option({Actions::AddCardsToHand({"Allowance","Allowance"})},{0,3,0}),
-            Option({Actions::AddCardsToDeck({"Treasure Map"})},{0,3,0}),
-            Option({Actions::Skip()},{})
+            Option({Actions::AddCardsToHand({"Allowance","Allowance"})},Resources{0,3,0}),
+            Option({Actions::AddCardsToDeck({"Treasure Map"})},Resources{0,3,0}),
+            Option({Actions::Skip()})
         }
     )),true);
     addCard(*(new EnemyCard("Trapped Chest",
             {
             Option({Actions::AddCardsToHand({"Allowance","Allowance"}),Actions::TakeDamage()}),
             Option({Actions::AddCardsToDeck({"Treasure Map"}),Actions::TakeDamage()}),
-            Option({Actions::Skip()},{})
+            Option({Actions::Skip()})
         }
     )),true);
     addCard(*(new EnemyCard("Treasure Map",
         {
-            Option({Actions::AddCardsToHand({"Emerald","Emerald"})},{}),
-            Option({Actions::Heal(1)},{}),
-            Option({Actions::AddCardsToDeck({"True Treasure"})},{})
+            Option({Actions::AddCardsToHand({"Emerald","Emerald"})}),
+            Option({Actions::Heal(1)}),
+            Option({Actions::AddCardsToDeck({"True Treasure"})})
         }
     )));
     addCard(*(new EnemyCard("True Treasure",
         {
-            Option({Actions::AddCardsToHand({"Diamond","Diamond","Diamond"})},{}),
-            Option({Actions::Heal(3)},{})
+            Option({Actions::AddCardsToHand({"Diamond","Diamond","Diamond"})}),
+            Option({Actions::Heal(3)})
         })));
     addCard(*(new EnemyCard("The Elements",
         {
-            Option({Actions::AddCardsToDeck({"The Elements"}),Actions::TakeDamage(1)},{}),
-            Option({Actions::AddCardsToDeck({"The Elements"})},{1,0,0}),
-            Option({Actions::AddCardsToDeck({"The Elements"})},{0,0,1})
+            Option({Actions::AddCardsToDeck({"The Elements"}),Actions::TakeDamage(1)}),
+            Option({Actions::AddCardsToDeck({"The Elements"})},Resources{1,0,0}),
+            Option({Actions::AddCardsToDeck({"The Elements"})},Resources{0,0,1})
         })),true);
     addCard(*(new EnemyCard("Job Offering",
         {
-            Option({Actions::AddCardsToHand({"Allowance"})},{}),
-            Option({Actions::AddCardsToDeck({"Starving Wolf","Starving Wolf"})},{}),
-            Option({Actions::AddCardsToDeck({"Cultist"})},{})
+            Option({Actions::AddCardsToHand({"Allowance"})}),
+            Option({Actions::AddCardsToDeck({"Starving Wolf","Starving Wolf"})}),
+            Option({Actions::AddCardsToDeck({"Cultist"})})
         }
     )),true);
     addCard(*(new EnemyCard("Cultist",
         {
-            Option({Actions::AddCardsToHand({"Allowance","Emerald"})},{0,5,0}),
-            Option({Actions::AddCardsToDeck({"Demon"})},{0,5,0}),
-            Option({Actions::Sin()},{})
+            Option({Actions::AddCardsToHand({"Allowance","Emerald"})},Resources{0,5,0}),
+            Option({Actions::AddCardsToDeck({"Demon"})},Resources{0,5,0}),
+            Option({Actions::Sin()})
         }
     )));
     addCard(*(new EnemyCard("Demon",
         {
-            Option({Actions::TakeDamage(),Actions::TakeDamage(),Actions::TakeDamage()},{}),
-            Option({Actions::Sin(),Actions::Sin(),Actions::Sin()},{}),
-            Option({Actions::AddCardsToHand({"Demon Heart","Diamond","Sword"})},{0,15,0})
+            Option({Actions::TakeDamage(),Actions::TakeDamage(),Actions::TakeDamage()}),
+            Option({Actions::Sin(),Actions::Sin(),Actions::Sin()}),
+            Option({Actions::AddCardsToHand({"Demon Heart","Diamond","Sword"})},Resources{0,15,0})
         }
     )));
     addCard(*(new EnemyCard("Lush Garden",
         {
-            Option({Actions::AddCardsToHand({"Apple","Potato"})},{}),
-            Option({Actions::AddCardsToDeck({"Potato Tree"})},{}),
+            Option({Actions::AddCardsToHand({"Apple","Potato"})}),
+            Option({Actions::AddCardsToDeck({"Potato Tree"})}),
             Option({Actions::Heal(1)})
         }
     )),true);
     addCard(*(new EnemyCard("Potato Tree",
         {
-            Option({Actions::AddCardsToHand({"Potato", "Potato"})},{}),
-            Option({Actions::AddCardsToHand({"Allowance", "Allowance", "Allowance"})},{}),
-            Option({Actions::AddCardsToDeck({"Potato Tree","Potato Tree"})},{2,0,0})
+            Option({Actions::AddCardsToHand({"Potato", "Potato"})}),
+            Option({Actions::AddCardsToHand({"Allowance", "Allowance", "Allowance"})}),
+            Option({Actions::AddCardsToDeck({"Potato Tree","Potato Tree"})},Resources{2,0,0})
         }
     )));
     addCard(*(new EnemyCard("Evil Book",
         {
-            Option({Actions::AddCardsToHand({"Allowance"})},{0,1,0}),
-            Option({Actions::AddCardsToDeck({"Forbidden Arts"})},{}),
-            Option({Actions::TakeDamage(1)},{})
+            Option({Actions::AddCardsToHand({"Allowance"})},Resources{0,1,0}),
+            Option({Actions::AddCardsToDeck({"Forbidden Arts"})}),
+            Option({Actions::TakeDamage(1)})
         }
     )),true);
     addCard(*(new EnemyCard("Forbidden Arts",
@@ -271,7 +271,7 @@ void CardsLookup::loadCards()
     addCard(*(new EnemyCard("Cursed Idol",
         {
             Option({Actions::Heal(1),Actions::LoseHand(),Actions::AddCardsToDeck({"Malicious Idol"})}),
-            Option({Actions::Skip()},{0,1,0}),
+            Option({Actions::Skip()},Resources{0,1,0}),
             Option({Actions::Sin()})
         }
     )),true);
@@ -279,22 +279,22 @@ void CardsLookup::loadCards()
     addCard(*(new EnemyCard("Malicious Idol",
         {
             Option({Actions::Heal(1),Actions::LoseHand(),Actions::AddCardsToDeck({"Consuming Idol"})}),
-            Option({Actions::Sin()},{0,5,0})
+            Option({Actions::Sin()},Resources{0,5,0})
         }
     )));
 
     addCard(*(new EnemyCard("Consuming Idol",
         {
             Option({Actions::Heal(1),Actions::LoseHand()}),
-            Option({Actions::Sin()},{0,10,0}),
+            Option({Actions::Sin()},Resources{0,10,0}),
             Option({Actions::Die()})
         }
     )));
 
     addCard(*(new EnemyCard("Cameo Appearance",
         {   
-            Option({Actions::AddCardsToHand({"Boulderfist"})},{0,0,3}),
-            Option({Actions::Sin(),Actions::Sin(),Actions::AddCardsToHand({"Pot of Greed"})},{0,0,3}),
+            Option({Actions::AddCardsToHand({"Boulderfist"})},Resources{0,0,3}),
+            Option({Actions::Sin(),Actions::Sin(),Actions::AddCardsToHand({"Pot of Greed"})},Resources{0,0,3}),
             Option({Actions::AddCardsToHand({"Black Goat"})})
         }
     )),true);
@@ -302,74 +302,74 @@ void CardsLookup::loadCards()
     addCard(*(new EnemyCard("Pestilence",
         {   
             Option({Actions::AddCardsToDeck({"Locust","Locust"})}),
-            Option({Actions::Skip()},{2,0,0}),
+            Option({Actions::Skip()},Resources{2,0,0}),
             Option({Actions::AddCardsToHand({"Trained Locust"})},{4,0,0})
         }
     )),true);
 
     addCard(*(new EnemyCard("Locust",
         {   
-            Option({Actions::AddCardsToDeck({"Locust","Locust"}),Actions::TakeDamage()},{}),
-            Option({Actions::Skip()},{0,0,4}),
-            Option({Actions::AddCardsToHand({"Trained Locust"})},{4,0,0})
+            Option({Actions::AddCardsToDeck({"Locust","Locust"}),Actions::TakeDamage()}),
+            Option({Actions::Skip()},Resources{0,0,4}),
+            Option({Actions::AddCardsToHand({"Trained Locust"})},Resources{4,0,0})
         } 
     )));
 
     addCard(*(new EnemyCard("Dagger Subscription",
         {   
-            Option({Actions::AddCardsToDeck({"Dagger Subscription"}),Actions::AddCardsToHand({"Dagger"})},{0,0,2}),
-            Option({Actions::AddCardsToDeck({"Premium Membership"})},{0,0,2}),
+            Option({Actions::AddCardsToDeck({"Dagger Subscription"}),Actions::AddCardsToHand({"Dagger"})},Resources{0,0,2}),
+            Option({Actions::AddCardsToDeck({"Premium Membership"})},Resources{0,0,2}),
             Option({Actions::Skip()})
         }
     )),true);
 
     addCard(*(new EnemyCard("Premium Membership",
         {   
-            Option({Actions::AddCardsToDeck({"Dagger Subscription"}),Actions::AddCardsToHand({"Sword"})},{}),
-            Option({Actions::AddCardsToDeck({"Premium Membership"}),Actions::AddCardsToHand({"Sword"})},{0,0,2}),
+            Option({Actions::AddCardsToDeck({"Dagger Subscription"}),Actions::AddCardsToHand({"Sword"})}),
+            Option({Actions::AddCardsToDeck({"Premium Membership"}),Actions::AddCardsToHand({"Sword"})},Resources{0,0,2}),
             Option({Actions::Skip()})
         }
     )));
 
     addCard(*(new EnemyCard("The Red Cross",
         {   
-            Option({Actions::TakeDamage(),Actions::AddCardsToHand({"Dagger","Dagger"})},{}),
-            Option({Actions::TakeDamage(),Actions::AddCardsToHand({"Potato","Potato"})},{}),
+            Option({Actions::TakeDamage(),Actions::AddCardsToHand({"Dagger","Dagger"})}),
+            Option({Actions::TakeDamage(),Actions::AddCardsToHand({"Potato","Potato"})}),
             Option({Actions::Skip()})
         }
     )),true);
 
     addCard(*(new EnemyCard("Piggy Banker",
         {   
-            Option({Actions::AddCardsToHand({"Allowance"})},{}),
-            Option({Actions::AddCardsToHand({"Allowance","Allowance"})},{0,3,0}),
-            Option({Actions::AddCardsToDeck({"Investment"})},{0,0,3})
+            Option({Actions::AddCardsToHand({"Allowance"})}),
+            Option({Actions::AddCardsToHand({"Allowance","Allowance"})},Resources{0,3,0}),
+            Option({Actions::AddCardsToDeck({"Investment"})},Resources{0,0,3})
         }
     )),true);
 
     addCard(*(new EnemyCard("Investment",
         {   
-            Option({Actions::AddCardsToDeck({"Big Investment"})},{0,0,3}),
-            Option({Actions::AddCardsToHand({"Emerald","Single Coin"})},{})
+            Option({Actions::AddCardsToDeck({"Big Investment"})},Resources{0,0,3}),
+            Option({Actions::AddCardsToHand({"Emerald","Single Coin"})})
         }        
     )));
 
     addCard(*(new EnemyCard("Big Investment",
         {   
-            Option({Actions::AddCardsToDeck({"Bigger Investment"})},{0,0,3}),
-            Option({Actions::AddCardsToHand({"Diamond","Allowance"})},{})
+            Option({Actions::AddCardsToDeck({"Bigger Investment"})},Resources{0,0,3}),
+            Option({Actions::AddCardsToHand({"Diamond","Allowance"})})
         }        
     )));
     addCard(*(new EnemyCard("Bigger Investment",
         {   
-            Option({Actions::AddCardsToDeck({"Biggest Investment"})},{0,0,3}),
-            Option({Actions::AddCardsToHand({"Diamond","Diamond"})},{})
+            Option({Actions::AddCardsToDeck({"Biggest Investment"})},Resources{0,0,3}),
+            Option({Actions::AddCardsToHand({"Diamond","Diamond"})})
         }        
     )));
 
     addCard(*(new EnemyCard("Biggest Investment",
         {   
-            Option({Actions::AddCardsToHand({"Diamond","Diamond","Diamond"})},{})
+            Option({Actions::AddCardsToHand({"Diamond","Diamond","Diamond"})})
         }        
     )));
 

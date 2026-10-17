@@ -196,7 +196,7 @@ void Interface::handleMouse(Player& player)
 
     if (player.currentEnemy)
     {
-        EnemyCard* enemy = static_cast<EnemyCard*>(player.currentEnemy.get());
+        /*EnemyCard* enemy = static_cast<EnemyCard*>(player.currentEnemy.get());
         Vector2 enemyPos = {deckRect.x + deckRect.width/2,deckRect.y + deckRect.height/2};
         if (enemy->handleInput(GetMousePosition(),player,enemyPos,ENEMY_SCALE))
         {
@@ -220,7 +220,7 @@ void Interface::handleMouse(Player& player)
             });
             player.draw();
 
-        }
+        }*/
     }
 }
 
@@ -270,7 +270,43 @@ void Interface::update( Player& player)
     }
 
     std::string message = "Cards Left In Deck: " + std::to_string(player.deck.size()) + (total > 0 ? ". Vengeful Spirits: " + std::to_string(total) : "");
-    DrawText(message.c_str(),playerDeckRect.x,playerDeckRect.y,30,WHITE);
+    DrawRectangleLines(playerDeckRect.x,playerDeckRect.y,playerDeckRect.width,playerDeckRect.height,RED);
+    DrawRectangle(playerDeckRect.x,playerDeckRect.y,playerDeckRect.height,playerDeckRect.height, {169,175,0,255});
+    if (EnemyCard* ptr = static_cast<EnemyCard*>(player.currentEnemy.get()))
+    {
+        DrawTexturePro(player.currentEnemy->cardArt,
+                    {0,0,player.currentEnemy->cardArt.width,player.currentEnemy->cardArt.height},
+                    {playerDeckRect.x,playerDeckRect.y,playerDeckRect.height,playerDeckRect.height},{0.5,0.5},0,WHITE);
+        for (int i = 0; i < static_cast<EnemyCard*>(player.currentEnemy.get())->options.size(); i ++)
+        {
+            float optionHeight = playerDeckRect.height*0.3333;
+            Rectangle optionRect = {playerDeckRect.x + playerDeckRect.height, 
+                                playerDeckRect.y + optionHeight*i,
+                                playerDeckRect.width - playerDeckRect.height,
+                                optionHeight};
+            
+            if (ptr->options[i].valid(player))
+            {
+                DrawRectangle(optionRect.x,optionRect.y,optionRect.width,optionRect.height,LIGHTGRAY);
+                if (CheckCollisionPointRec(GetMousePosition(),optionRect) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+                {
+                    ptr->options[i].effect(player);
+                    player.draw();
+                    break;
+                }
+            }
+            else
+            {
+                DrawRectangle(optionRect.x,optionRect.y,optionRect.width,optionRect.height,DARKGRAY);
+            }
+            DrawRectangleLines(optionRect.x,optionRect.y,optionRect.width,optionRect.height,BLACK);
+            ptr->options[i].render(optionRect);
+
+        }
+        
+    }
+
+    //DrawText(message.c_str(),playerDeckRect.x,playerDeckRect.y,30,WHITE);
 
     Texture2D boardSprite = SpriteManager::getSprite("board.png");
     DrawTexturePro(boardSprite,
@@ -304,11 +340,6 @@ void Interface::update( Player& player)
     if (heldCard)
     {
         heldCard->renderCentered(GetMousePosition(),0,1);
-    }
-
-    if (player.currentEnemy > 0)
-    {
-        player.currentEnemy->renderCentered({playerDeckRect.x + playerDeckRect.width/2, playerDeckRect.y + playerDeckRect.height/2},0,ENEMY_SCALE);
     }
 
     message = std::to_string(player.hand.size() + player.board.size()) + "/" + std::to_string(player.maxHandSize);

@@ -24,7 +24,7 @@ Actions::Action Actions::AddCardsToHand(const std::vector<Card::CardIdentifier>&
             {
                 CardPtr temp = CardsLookup::getCard(ids[i]);
                 if (temp)
-                temp->render({rect.x + rect.width + 10,rect.y + Card::CARD_DIMEN.y*1.1*i*2},0,2);
+                temp->render({rect.x,rect.y + rect.height + Card::CARD_DIMEN.y*1.1*i*2},0,2);
             }
         }
     };
@@ -49,7 +49,7 @@ Actions::Action Actions::AddCardsToDeck(const std::vector<Card::CardIdentifier>&
             for (int i = 0; i < ids.size(); i ++)
             {
                 CardPtr temp = CardsLookup::getCard(ids[i]);
-                temp->render({rect.x + rect.width + 10,rect.y + (Card::CARD_DIMEN.y*1.1)*i*2},0,2);
+                temp->render({rect.x,rect.y + rect.height + Card::CARD_DIMEN.y*1.1*i*2},0,2);
             }
         }
     };

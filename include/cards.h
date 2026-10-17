@@ -20,6 +20,62 @@ struct Resources : public std::array<int,3>
 
     static Texture2D getResourceIcon(size_t resource);
     static void renderResource(ResourceName name, size_t amount,const Vector2& start, size_t size, size_t spacing);
+
+    Resources operator+(const Resources& other) const
+    {
+        Resources total;
+        for (int r = 0; r < RESOURCE_NAME_SIZE; r ++)
+        {
+            total[r] = (*(this))[r] + other[r];
+        }
+        return total;
+    }
+    Resources operator-(const Resources& other) const
+    {
+        Resources total;
+        for (int r = 0; r < RESOURCE_NAME_SIZE; r ++)
+        {
+            total[r] = std::max(0,(*(this))[r] - other[r]);
+        }
+        return total;
+    }
+    bool operator == (const Resources& other) const
+    {
+        for (int r = 0; r < RESOURCE_NAME_SIZE; r ++)
+        {
+            if (other[r] != (*this)[r])
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+    bool operator != (const Resources& other) const
+    {
+        return !((*this) == other);
+    }
+    void operator += (const Resources& other)
+    {
+        (*this) = (*this) + other;
+    }
+    void operator -= (const Resources& other)
+    {
+        (*this) = (*this) - other;
+    }
+
+    operator bool() const
+    {
+        for (int r = 0; r < RESOURCE_NAME_SIZE; r ++)
+        {
+            if ((*this)[r] > 0)
+            {
+                return true;
+            }
+        } 
+        return false;
+    }
+
+
 };
 
 struct Player;
@@ -81,6 +137,10 @@ struct Card
 
 };
 
+struct CardData
+{
+    Card::CardIdentifier id;
+};
 
 typedef std::unique_ptr<Card> CardPtr;
 

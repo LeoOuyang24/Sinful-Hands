@@ -37,7 +37,7 @@ int main(void)
     // Initialization
     //--------------------------------------------------------------------------------------
     const Vector2 screenDimen = {1000,1000};
-    SetConfigFlags( FLAG_VSYNC_HINT);
+    SetConfigFlags( FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE );
     InitWindow(screenDimen.x, screenDimen.y, "raylib [core] example - basic window");
     InitAudioDevice();
 
@@ -94,7 +94,7 @@ int main(void)
         BeginDrawing();
 
             ClearBackground(WHITE);
-            DrawTexturePro(bg,{0,0,bg.width,bg.height},{0,0,screenDimen.x,screenDimen.y},{0.5,0.5},0,WHITE);
+            //DrawTexturePro(bg,{0,0,bg.width,bg.height},{0,0,screenDimen.x,screenDimen.y},{0.5,0.5},0,WHITE);
                 
             interface.update(player);
 

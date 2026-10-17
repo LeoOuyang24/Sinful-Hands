@@ -2,18 +2,40 @@
 #define OPTIONS_H
 
 #include <array>
+#include <functional>
 
 #include "actions.h"
 
 struct Player;
 
+
+
+struct OptionVerifier
+{
+    std::function<bool(const Player& player)> verifier;
+    std::function<void(Player& player)> boardProcessor = [](Player& player){  };
+    std::function<void(const Rectangle& rect)> renderer = [](const Rectangle& rect){ DrawRectangle(rect.x,rect.y,rect.width,rect.height,RED); };
+
+    bool verify(const Player& player){ return !verifier || verifier(player); }
+    void render(const Rectangle& rect){ if (renderer) renderer(rect); }
+    void postPick(Player& player) { if (boardProcessor) boardProcessor(player); }
+
+    operator bool() const //a verifier is effectively non existent if it has no verification function
+    {
+        return static_cast<bool>(verifier);
+    }
+};
+
+OptionVerifier ResourceVerifier(const Resources& resources);
+OptionVerifier CardVerifier(Card::CardIdentifier id);
+
 struct Option
 {
-
     Actions::Consequences consequences;
-    Resources resources = {0,0,0};
+    OptionVerifier verifier;
 
-    Option(const Actions::Consequences& cons_, const Resources resources_ = {});
+    Option(const Actions::Consequences& cons_, OptionVerifier verifier = {});
+    Option(const Actions::Consequences& cons_, const Resources& resources);
 
     //true if this option can be selected
     virtual bool valid(const Player& player);

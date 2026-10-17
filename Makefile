@@ -3,9 +3,9 @@ objs := $(patsubst src/%.cpp,build/%.o,$(srcs))
 app  := main.exe
 deps := $(patsubst src/%.cpp,build/%.d,$(srcs))
 
-CXXFLAGS := -std=c++20 -Wall -I ../raylib-5.5_win64_mingw-w64/include -MMD -MP -Wno-narrowing -Wsign-compare
-LDFLAGS := -static -lraylib -lopengl32 -lwinmm -lgdi32 -lpthread -lraylib -lopengl32 -lwinmm -lgdi32 -lpthread
-LDLIBS := -L ..\raylib-5.5_win64_mingw-w64/lib
+CXXFLAGS := -std=c++20 -Wall -I ../raylib-5.5_win64_mingw-w64/include -I ../raylib_resources/include -MMD -MP -Wno-narrowing -Wsign-compare
+LDFLAGS := -lresources -static -lraylib -lopengl32 -lwinmm -lgdi32 -lpthread 
+LDLIBS := -L ../raylib_resources/ -L ..\raylib-5.5_win64_mingw-w64/lib 
 BUILD ?= debug
 
 ifeq ($(BUILD),release)

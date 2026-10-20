@@ -1,8 +1,19 @@
+#include "raylib_helper.h"
+
 #include "../include/actions.h"
 #include "../include/player.h"
 #include "../include/card_repo.h"
 #include "../include/sequencer.h"
 #include "../include/sprites.h"
+
+auto CreateRenderIconFunction(std::string icon)
+{
+    return [icon](const Rectangle& rect)
+    {
+        Texture2D sprite = SpriteManager::getSprite(icon);
+        DrawSprite(sprite,rect);
+    };
+}
 
 Actions::Action Actions::AddCardsToHand(const std::vector<Card::CardIdentifier>& ids)
 {
@@ -30,23 +41,39 @@ Actions::Action Actions::AddCardsToHand(const std::vector<Card::CardIdentifier>&
     };
 }
 
-Actions::Action Actions::AddCardsToDeck(const std::vector<Card::CardIdentifier>& ids)
+Actions::Action Actions::AddCardToHand(Card::CardIdentifier id)
+{
+    return AddCardsToHand(std::vector<Card::CardIdentifier>{id});
+}
+
+Actions::Action Actions::AddCardsToDeck(const std::vector<Card::CardIdentifier>& ids, bool topdeck)
 {
     return {
         [](const Rectangle& rect){
             Texture2D icon = SpriteManager::getSprite("shuffle_card.png");
             DrawTexturePro(icon,{0,0,icon.width,icon.height},rect,{0.5,0.5},0,WHITE);
         },
-        [ids](Player& player){    
-            for (int i = 0; i < ids.size(); i ++)
+        [ids,topdeck](Player& player){    
+            for (int i = ids.size() - 1; i >= 0; i --)
             {
-                player.addCardToDeck(ids[i]);
+                if (topdeck)
+                {
+                    player.addCardToDeck(ids[i],0);
+                }
+                else
+                {
+                    player.addCardToDeck(ids[i]);
+                }
             }
         },
-        [ids](const Rectangle& rect)
+        [ids,topdeck](const Rectangle& rect)
         {
-            DrawText("Adds these card(s)\n to the deck: ", rect.x, rect.y, TooltipFont, WHITE);
-            for (int i = 0; i < ids.size(); i ++)
+            //I LOVE C++ STRINGS !!!!!!!!!!!
+            std::string message = "Adds these card(s)\n to the "; 
+            message += (topdeck ? "TOP of the " : " ");
+            message += "deck: ";
+            DrawText(message.c_str(), rect.x, rect.y, TooltipFont, WHITE);
+            for (size_t i = 0; i < ids.size(); i ++)
             {
                 CardPtr temp = CardsLookup::getCard(ids[i]);
                 temp->render({rect.x,rect.y + rect.height + Card::CARD_DIMEN.y*1.1*i*2},0,2);
@@ -91,31 +118,6 @@ Actions::Action Actions::TakeDamage(int damage)
     };  
 }
 
-Actions::Action Actions::Sin()
-{
-    return {
-        [](const Rectangle& rect){
-            Texture2D icon = SpriteManager::getSprite("sin_icon.png");
-            DrawTexturePro(icon,{0,0,icon.width,icon.height},rect,{0.5,0.5},0,WHITE);           
-        },
-        [](Player& player){
-            player.addCardToDeck("Wrathful Spirit");
-            player.addCardToDeck("Famished Spirit");
-            player.addCardToDeck("Greedy Spirit");
-            Sequences::addSequence([start=GetTime()]()
-            {
-                float lerp = GetTime() - start;
-                DrawRectangle(0,0,GetScreenWidth(),GetScreenHeight(),{120,0,0,255*(std::max(0.0f,1 - lerp/2))});
-
-                return lerp > 2;
-            });
-        },
-        [](const Rectangle& rect){
-            DrawText("Commit a vile sin.\n3 angry spirits\nwill haunt you!",rect.x, rect.y, TooltipFont, WHITE);
-        }
-    };   
-}
-
 Actions::Action Actions::Die()
 {
     return {
@@ -132,18 +134,20 @@ Actions::Action Actions::Die()
     };   
 }
 
-Actions::Action Actions::LoseHand()
+Actions::Action Actions::ChangeHandSize(int amount)
 {
     return {
         [](const Rectangle& rect){
             Texture2D icon = SpriteManager::getSprite("lose_hand_icon.png");
             DrawTexturePro(icon,{0,0,icon.width,icon.height},rect,{0.5,0.5},0,WHITE);           
         },
-        [](Player& player){
-            player.loseHandSize();
+        [amount](Player& player){
+            player.changeHandSize(amount);
         },
-        [](const Rectangle& rect){
-            DrawText("Reduce max hand\nsize by 1",rect.x, rect.y, TooltipFont, WHITE);
+        [amount](const Rectangle& rect){
+            std::string str = (amount > 0 ? "Increase " : "Reduce ");
+            str += "max hand\nsize by " + std::to_string(amount);
+            DrawText(str.c_str(),rect.x, rect.y, TooltipFont, WHITE);
         }        
     };   
 }
@@ -223,4 +227,30 @@ Actions::Action Actions::Win()
             DrawText("Win the game.\nYour goal is to\nbypass this card.",rect.x, rect.y, TooltipFont, WHITE);
         }       
     };   
+}
+
+Actions::Action Actions::Clone()
+{
+    return {
+         CreateRenderIconFunction("clone_icon.png"),
+        [](Player& player){
+            if (player.board.size() > 0 && player.board[0])
+            {
+                player.addCard(player.board[0]->name,true);
+            }
+        },
+        [](const Rectangle& rect){
+            DrawText("Duplicate a single card",rect.x, rect.y, TooltipFont, WHITE);
+        }       
+    };       
+}
+
+Actions::Action Actions::AddTool(Tool::Type type)
+{
+    return {
+        .effect = [type](Player& player)
+        {
+            player.addTool(type);
+        }
+    };
 }

@@ -4,6 +4,8 @@
 #include "../include/sprites.h"
 #include "../include/sequencer.h"
 
+#include "raylib_helper.h"
+
 #include "raymath.h"
 
 
@@ -30,29 +32,30 @@ void Player::addCard(Card::CardIdentifier id, bool hand)
     addCard(ptr,hand);
 }
 
-void Player::loseHandSize()
+void Player::changeHandSize(int amount)
 {
-    maxHandSize = std::max(maxHandSize - 1,0);
+    maxHandSize = std::max(maxHandSize + amount,0);
     if (hand.size() >= maxHandSize)
     {
         hand.resize(maxHandSize);
     }
 }
 
-void Player::addCardToDeck(Card::CardIdentifier id)
+void Player::addCardToDeck(Card::CardIdentifier id, int index)
 {
     CardPtr ptr = CardsLookup::getCard(id);
     if (ptr)
     {
         if (deck.size() > 1)
         {
-            int random = rand()%(deck.size()+1);
+            int random = (index == -1) ? rand()%(deck.size()+1) : index;
             if (random > deck.size()) //new last card
             {
                 deck.push_back(std::move(ptr));
             }
             else //insert somewhere before the last card
             {
+                //TODO: Need to add an option so cards can't be added as the next card when inserted randomly
                 deck.insert(deck.begin() + random,std::move(ptr));
             }
         }
@@ -132,6 +135,31 @@ void Player::takeDamage(int damage)
         gameOver();
     }
 }
+
+void Player::addTool(Tool::Type type)
+{
+    if (type != Tool::NONE)
+    {
+        tools.push_back(type);
+    }
+}
+
+void Player::setCurrentTool(int index)
+{
+    currentTool = index;
+}
+
+void Player::removeCurrentTool()
+{
+    tools.erase(tools.begin() + currentTool);
+    currentTool = -1;
+}
+
+Tool::Type Player::getCurrentTool() const
+{
+    return currentTool >= 0 && currentTool < tools.size() ? tools[currentTool] : Tool::NONE;
+}
+
 
 void Player::gameOver()
 {
@@ -245,6 +273,18 @@ void Interface::renderCardList(const CardList& lst, const Rectangle& rect)
 
 void Interface::update( Player& player)
 {
+    if (foresight > 0 && IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+    {
+        //TODO: This sucks lol
+        foresight = 0;
+        return;
+    }
+    else if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && (player.getCurrentTool() == Tool::GLASSES || player.getCurrentTool() == Tool::BINOCULARS))
+    {
+        foresight = 3 + (2)*(player.getCurrentTool() == Tool::BINOCULARS);
+        player.removeCurrentTool();
+    }
+
     Vector2 screenDimen = {GetScreenWidth(),GetScreenHeight()};
 
     Vector2 screenCenter = screenDimen*0.5;
@@ -253,6 +293,7 @@ void Interface::update( Player& player)
     Rectangle playerBoardRect = getRegion(BOARD_TOP_LEFT,BOARD_SECTION);
     Rectangle playerDeckRect = getRegion(DECK_TOP_LEFT,DECK_SECTION);
     Rectangle playerStatsRect = getRegion(HEALTH_AND_HUNGER_TOP_LEFT,HEALTH_AND_HUNGER_SECTION);
+    Rectangle playerToolsRect = getRegion({TOOLBOX.x,TOOLBOX.y},{TOOLBOX.z,TOOLBOX.w});
 
     //DrawRectangleLines(playerDeckRect.x,playerDeckRect.y,playerDeckRect.width,playerDeckRect.height,RED);
 
@@ -269,53 +310,99 @@ void Interface::update( Player& player)
         }
     }
 
+
     std::string message = "Cards Left In Deck: " + std::to_string(player.deck.size()) + (total > 0 ? ". Vengeful Spirits: " + std::to_string(total) : "");
     DrawRectangleLines(playerDeckRect.x,playerDeckRect.y,playerDeckRect.width,playerDeckRect.height,RED);
     DrawRectangle(playerDeckRect.x,playerDeckRect.y,playerDeckRect.height,playerDeckRect.height, {169,175,0,255});
+    bool hasTool = player.getCurrentTool() == Tool::AXE || player.getCurrentTool() == Tool::WAND;
     if (EnemyCard* ptr = static_cast<EnemyCard*>(player.currentEnemy.get()))
     {
+        bool tooled = CheckCollisionPointRec(GetMousePosition(),playerDeckRect) && hasTool ;
+
         DrawTexturePro(player.currentEnemy->cardArt,
                     {0,0,player.currentEnemy->cardArt.width,player.currentEnemy->cardArt.height},
-                    {playerDeckRect.x,playerDeckRect.y,playerDeckRect.height,playerDeckRect.height},{0.5,0.5},0,WHITE);
-        for (int i = 0; i < static_cast<EnemyCard*>(player.currentEnemy.get())->options.size(); i ++)
+                    {playerDeckRect.x,playerDeckRect.y,playerDeckRect.height,playerDeckRect.height},{0.5,0.5},0,tooled ? GRAY : WHITE);
+        DrawText(player.currentEnemy->name.c_str(),playerDeckRect.x,playerDeckRect.y - .1*playerDeckRect.height,.1*playerDeckRect.height,BLACK);
+        if (tooled && IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
         {
-            float optionHeight = playerDeckRect.height*0.3333;
-            Rectangle optionRect = {playerDeckRect.x + playerDeckRect.height, 
-                                playerDeckRect.y + optionHeight*i,
-                                playerDeckRect.width - playerDeckRect.height,
-                                optionHeight};
-            
-            if (ptr->options[i].valid(player))
+            //TODO: put wand, glove and amybe axe functionality in a function elsewhere to not bloat this file
+            switch (player.getCurrentTool())
             {
-                DrawRectangle(optionRect.x,optionRect.y,optionRect.width,optionRect.height,LIGHTGRAY);
-                if (CheckCollisionPointRec(GetMousePosition(),optionRect) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
-                {
-                    ptr->options[i].effect(player);
+                case Tool::AXE:
                     player.draw();
+                    break;
+                case Tool::WAND:
+                {
+                    const int animalChoices = 5;
+                    int animal = rand()%animalChoices;
+                    Card::CardIdentifier polymorphs[animalChoices] = {"Sheep", "Frog", "Bear", "Sentient Corn", "Hungry Dragon"};
+                    player.currentEnemy = CardsLookup::getCard(polymorphs[animal]);
                     break;
                 }
             }
-            else
-            {
-                DrawRectangle(optionRect.x,optionRect.y,optionRect.width,optionRect.height,DARKGRAY);
-            }
-            DrawRectangleLines(optionRect.x,optionRect.y,optionRect.width,optionRect.height,BLACK);
-            ptr->options[i].render(optionRect);
-
+            player.removeCurrentTool();
         }
-        
+        else
+        {
+            for (int i = 0; i < static_cast<EnemyCard*>(player.currentEnemy.get())->options.size(); i ++)
+            {
+                float optionHeight = playerDeckRect.height*0.3333;
+                Rectangle optionRect = {playerDeckRect.x + playerDeckRect.height*1.5, 
+                                    playerDeckRect.y + optionHeight*i,
+                                    playerDeckRect.width - playerDeckRect.height,
+                                    optionHeight};
+                bool hammered = player.getCurrentTool() == Tool::HAMMER;
+                bool gloved = player.getCurrentTool() == Tool::GLOVE;
+                if (ptr->options[i].valid(player) || hammered)
+                {
+                    DrawRectangle(optionRect.x,optionRect.y,optionRect.width,optionRect.height,LIGHTGRAY);
+                    if (CheckCollisionPointRec(GetMousePosition(),optionRect) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+                    {
+                        //option was hammered
+                        if ((!ptr->options[i].valid(player) && hammered) || gloved)
+                        {
+                            player.removeCurrentTool();
+                        }
+                        
+                        if (gloved)
+                        {
+                            for (int j = 0; j < static_cast<EnemyCard*>(player.currentEnemy.get())->options.size(); j ++)
+                            {
+                                if (ptr->options[j].valid(player))
+                                {
+                                    ptr->options[j].effect(player);
+                                }
+                            }                        
+                        }
+                        else
+                        {
+                            ptr->options[i].effect(player);
+                        }
+
+                        player.draw();
+                        break;
+                    }
+                }
+                else
+                {
+                    DrawRectangle(optionRect.x,optionRect.y,optionRect.width,optionRect.height,DARKGRAY);
+                }
+                DrawRectangleLines(optionRect.x,optionRect.y,optionRect.width,optionRect.height,BLACK);
+                ptr->options[i].render(optionRect);
+            }
+        }
     }
 
     //DrawText(message.c_str(),playerDeckRect.x,playerDeckRect.y,30,WHITE);
 
     Texture2D boardSprite = SpriteManager::getSprite("board.png");
-    DrawTexturePro(boardSprite,
+    /*DrawTexturePro(boardSprite,
         {0,0,boardSprite.width,boardSprite.height},
         playerBoardRect,
         {0.5,0.5},
         0,
         WHITE
-    );
+    );*/
     //DrawRectangleLines(playerBoardRect.x, playerBoardRect.y, playerBoardRect.width, playerBoardRect.height,PURPLE);
 
 
@@ -342,12 +429,47 @@ void Interface::update( Player& player)
         heldCard->renderCentered(GetMousePosition(),0,1);
     }
 
+
+    DrawRectangleLines(playerToolsRect.x,playerToolsRect.y,playerToolsRect.width,playerToolsRect.height,RED);
+    const float spacing = playerToolsRect.width/2;
+    const float iconDimen = playerToolsRect.width/2;
+    for (int i = 0; i < player.tools.size(); i ++)
+    {
+        Rectangle toolRect = {playerToolsRect.x + playerToolsRect.width/2 - iconDimen/2,playerToolsRect.y + spacing*(i+1) - spacing/2 - iconDimen/2,iconDimen,iconDimen};
+        DrawSprite(Tool::getSprite(player.tools[i]),toolRect,0, i == player.currentTool ? GRAY : WHITE);
+        if (CheckCollisionPointRec(GetMousePosition(),toolRect) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+        {
+            player.setCurrentTool(i);
+        }
+    }
+
+    if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
+    {
+        player.setCurrentTool(-1);
+    }
+    if (player.getCurrentTool() != Tool::NONE)
+    {
+        DrawSpriteCentered(Tool::getSprite(player.getCurrentTool()),{GetMousePosition().x,GetMousePosition().y,30,30});
+    }
+
     message = std::to_string(player.hand.size() + player.board.size()) + "/" + std::to_string(player.maxHandSize);
     DrawText(message.c_str(),playerHandRect.x + playerHandRect.width/2 - 10,playerHandRect.y,20,WHITE);
 
     renderCardList(player.hand,playerHandRect);
     renderCardList(player.board,playerBoardRect);
     handleMouse(player);
+
+    if (foresight > 0)
+    {
+        DrawRectangle(0,0,GetScreenWidth(),GetScreenHeight(),Color{100,100,100,120});
+        for (int i = 0; i < foresight; i ++)
+        {
+            const Vector2 dimen = {200,200};
+            if (player.deck[i])
+            DrawSprite(player.deck[i]->cardArt,{100 + dimen.x*i,GetScreenHeight()/2 - dimen.y/2,dimen.x,dimen.y});
+        }
+    }
+
 
     if (player.dead)
     {

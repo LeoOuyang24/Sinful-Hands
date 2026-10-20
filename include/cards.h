@@ -24,7 +24,7 @@ struct Resources : public std::array<int,3>
     Resources operator+(const Resources& other) const
     {
         Resources total;
-        for (int r = 0; r < RESOURCE_NAME_SIZE; r ++)
+        for (size_t r = 0; r < RESOURCE_NAME_SIZE; r ++)
         {
             total[r] = (*(this))[r] + other[r];
         }
@@ -33,7 +33,7 @@ struct Resources : public std::array<int,3>
     Resources operator-(const Resources& other) const
     {
         Resources total;
-        for (int r = 0; r < RESOURCE_NAME_SIZE; r ++)
+        for (size_t r = 0; r < RESOURCE_NAME_SIZE; r ++)
         {
             total[r] = std::max(0,(*(this))[r] - other[r]);
         }
@@ -41,7 +41,7 @@ struct Resources : public std::array<int,3>
     }
     bool operator == (const Resources& other) const
     {
-        for (int r = 0; r < RESOURCE_NAME_SIZE; r ++)
+        for (size_t r = 0; r < RESOURCE_NAME_SIZE; r ++)
         {
             if (other[r] != (*this)[r])
             {
@@ -65,7 +65,7 @@ struct Resources : public std::array<int,3>
 
     operator bool() const
     {
-        for (int r = 0; r < RESOURCE_NAME_SIZE; r ++)
+        for (size_t r = 0; r < RESOURCE_NAME_SIZE; r ++)
         {
             if ((*this)[r] > 0)
             {
@@ -74,8 +74,6 @@ struct Resources : public std::array<int,3>
         } 
         return false;
     }
-
-
 };
 
 struct Player;

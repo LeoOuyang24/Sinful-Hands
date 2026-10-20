@@ -28,19 +28,22 @@ struct OptionVerifier
 
 OptionVerifier ResourceVerifier(const Resources& resources);
 OptionVerifier CardVerifier(Card::CardIdentifier id);
+OptionVerifier CardAmountVerifier(int amount);
 
 struct Option
 {
     Actions::Consequences consequences;
     OptionVerifier verifier;
+    std::string name = "Hello";
 
     Option(const Actions::Consequences& cons_, OptionVerifier verifier = {});
     Option(const Actions::Consequences& cons_, const Resources& resources);
+    Option(const Actions::Consequences& cons_, std::function<bool(const Player& player)> verifier_);
 
     //true if this option can be selected
-    virtual bool valid(const Player& player);
-    virtual void effect(Player& player);
-    virtual void render(const Rectangle& rect);
+    bool valid(const Player& player);
+    void effect(Player& player);
+    void render(const Rectangle& rect);
 };
 
 struct EnemyCard  : public Card

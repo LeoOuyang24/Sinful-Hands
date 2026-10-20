@@ -25,14 +25,17 @@ OptionVerifier ResourceVerifier(const Resources& resources)
             },
             [res=resources](Player& player) mutable
             {
-                for (int j = 0; j < player.board.size() && res; j ++)
+                for (int j = 0; j < player.board.size() && res;)
                 {
                     if (res != res - player.board[j]->resources)
                     {
                         res -= player.board[j]->resources;
                         player.board.removeCard(j);
+                    } 
+                    else
+                    {
+                        j++;
                     }
-                    
                 }
             },
             [resources](const Rectangle& rect)
@@ -96,23 +99,16 @@ OptionVerifier CardVerifier(Card::CardIdentifier id)
     };    
 }
 
+OptionVerifier CardAmountVerifier(int amount)
+{
+    return 
+    {
+        [amount](const Player& player){return player.board.size() == amount;}
+    };
+}
+
 void Option::render(const Rectangle& rect)
 {
-    /*for (int i = 0; i < Resources::RESOURCE_NAME_SIZE; i ++)
-    {
-        //only handles one resource atm, any more and we run out of space
-        if (resources[i] > 0)
-        {
-            Resources::renderResource(static_cast<Resources::ResourceName>(i),resources[i],{rect.x,rect.y + rect.height/2 - height/2},height,height*0.3f);
-
-            Texture2D arrow = SpriteManager::getSprite("trade_arrow.png");
-            DrawTexturePro(arrow,{0,0,arrow.width,arrow.height},{rect.x + height*0.3f + height*2, rect.y + rect.height/2 - rect.height*.125,rect.height*0.5,rect.height*0.25},{0.5,0.5},0,WHITE);
-
-            hasResources = true;
-            break;
-        }
-    }*/
-
     Rectangle resultRect = rect;
 
     const float ratio = 0.1f;
@@ -123,6 +119,11 @@ void Option::render(const Rectangle& rect)
 
     resultRect.x += margin;
     resultRect.y += margin;
+
+    if (name.size() > 0)
+    {
+
+    }
 
     //this increment code SUUUUUUUUUUUCKSSSSSS
     if (verifier)
@@ -142,7 +143,7 @@ void Option::render(const Rectangle& rect)
 
     for (int i = 0; i < consequences.size(); i ++)
     {
-        Rectangle consRect = {resultRect.x + spacing*(i) + iconDimen*i,resultRect.y + margin, (1 - 2*ratio)*resultRect.height, (1 - 2*ratio)*resultRect.height};
+        Rectangle consRect = {resultRect.x + arrow_spacing*(i) + iconDimen*i,resultRect.y,iconDimen,iconDimen };
         consequences[i].renderIcon(consRect);
         //DrawRectangle(resultRect.x + width*(i + 1) + iconDimen*i,resultRect.y + margin*resultRect.height, (1 - 2*margin)*resultRect.height, (1 - 2*margin)*resultRect.height,RED);
         if (CheckCollisionPointRec(GetMousePosition(),consRect) && consequences[i].tooltip)
@@ -166,6 +167,10 @@ Option::Option(const Actions::Consequences& cons, OptionVerifier verifier_ ) : c
 
 }
 
+Option::Option(const Actions::Consequences& cons_, std::function<bool(const Player& player)> verifier_) : consequences(cons_), verifier({verifier_})
+{
+
+}
 
 void Option::effect(Player& player)
 {

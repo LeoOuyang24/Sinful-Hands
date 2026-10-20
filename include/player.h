@@ -7,6 +7,7 @@
 
 #include "cards.h"
 #include "actions.h"
+#include "tools.h"
 
 struct EnemyCard;
 struct EffectCard;
@@ -16,6 +17,9 @@ struct Player
     static constexpr size_t MAX_HAND_SIZE = 11;
     static constexpr int MAX_PLAYER_HEALTH = 3;
     static constexpr int MAX_PLAYER_HUNGER = 3;
+
+    std::vector<Tool::Type> tools;
+    int currentTool = -1; //index of the current tool
 
     CardList deck;
     CardPtr currentEnemy;
@@ -34,9 +38,11 @@ struct Player
     void addCard(CardPtr& ptr, bool hand);
     void addCard(Card::CardIdentifier, bool hand);
 
-    void loseHandSize();
+    void changeHandSize(int amount);
 
-    void addCardToDeck(Card::CardIdentifier);
+    //add a card at the given index
+    //-1 to insert randomly 
+    void addCardToDeck(Card::CardIdentifier, int index = -1);
     void draw();
 
     void addEffect(EffectCard& effectCard);
@@ -46,6 +52,10 @@ struct Player
     Resources getBoardResources() const;
 
     void takeDamage(int damage);
+    void addTool(Tool::Type);
+    void setCurrentTool(int index);
+    void removeCurrentTool();
+    Tool::Type getCurrentTool() const;
 
     void gameOver();
     void win();
@@ -58,19 +68,23 @@ struct Interface
 
     static constexpr Vector2 HAND_SECTION = {0.8,0.15f};
     static constexpr Vector2 HAND_TOP_LEFT = {0, 1 - MARGINS.y - HAND_SECTION.y};
-    static constexpr Vector2 DECK_SECTION = {0.7f,0.4f};
+    static constexpr Vector2 DECK_SECTION = {0.6f,0.4f};
     static constexpr Vector2 DECK_TOP_LEFT = {.1f,MARGINS.y + .01};
     static constexpr Vector2 HEALTH_AND_HUNGER_SECTION = {0.2f,HAND_TOP_LEFT.y - DECK_TOP_LEFT.y - DECK_SECTION.y};
     static constexpr Vector2 HEALTH_AND_HUNGER_TOP_LEFT = {MARGINS.x, 0.5f};
     static constexpr Vector2 BOARD_TOP_LEFT = {.5 - .35, 
                                                 DECK_TOP_LEFT.y + DECK_SECTION.y};
-    static constexpr Vector2 BOARD_SECTION = {.7,HAND_TOP_LEFT.y - (DECK_TOP_LEFT.y + DECK_SECTION.y)};                                           
+    static constexpr Vector2 BOARD_SECTION = {.7,HAND_TOP_LEFT.y - (DECK_TOP_LEFT.y + DECK_SECTION.y)};   
+    
+    static constexpr Vector4 TOOLBOX = {MARGINS.x,0.5,.1,HAND_TOP_LEFT.y - 0.5};
 
     static constexpr float HAND_CARD_SEPARATION = .01f;
 
     static constexpr float ENEMY_SCALE = 3.5;
 
     CardPtr heldCard; //index of card in hand that we are holding
+
+    int foresight = 0; //number of cards ahead the player is scouting
 
     Rectangle getRegion(const Vector2& topLeft,const Vector2& section);
     Rectangle getIthHandCardRect(int i, const Rectangle& handRect);

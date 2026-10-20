@@ -1,6 +1,7 @@
 #ifndef SPRITES_H
 #define SPRITES_H
 
+#include <iostream>
 #include <unordered_map>
 #include <raylib.h>
 

@@ -50,6 +50,9 @@ int main(void)
 
     Player& player = Globals::player;
 
+    for (int i = 0; i < 3; i ++)
+    player.addTool(Tool::GLASSES);
+
     for (int i = 0; i < 2; i++)
     {
         player.addCard("Potato", true);
@@ -65,10 +68,11 @@ int main(void)
 
     player.currentEnemy = CardsLookup::getCard("Kind Vendor"); 
     player.deck.insert(player.deck.begin(),CardsLookup::getCard("Castle Gates"));
+    player.deck.insert(player.deck.begin() + 1, CardsLookup::getCard("Fork in the Road"));
 
     Interface interface;
 
-    Texture2D bg = SpriteManager::getSprite("background.png");
+    Texture2D bg = SpriteManager::getSprite("bg.png");
 
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
@@ -83,6 +87,7 @@ int main(void)
 
         if (IsKeyPressed(KEY_SPACE))
         {
+            std::cout << "BOARD SIZE: " << player.board.size() << "\n";
             for (int i = 0; i < player.deck.size(); i ++)
             {
                 std::cout << player.deck[i]->name << "\n";
@@ -93,10 +98,10 @@ int main(void)
         //----------------------------------------------------------------------------------
         BeginDrawing();
 
-            ClearBackground(WHITE);
-            //DrawTexturePro(bg,{0,0,bg.width,bg.height},{0,0,screenDimen.x,screenDimen.y},{0.5,0.5},0,WHITE);
+            ClearBackground(DARKGRAY);
+            //DrawTexturePro(bg,{0,0,bg.width,bg.height},{0,0,GetScreenWidth(),GetScreenHeight()},{0.5,0.5},0,WHITE);
                 
-            interface.update(player);
+            interface.update(Globals::player);
 
             Sequences::update();
 

@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "cards.h"
+#include "tools.h"
 
 //actions are the things that can happen after you choose an option
 
@@ -25,16 +26,18 @@ namespace Actions
     static constexpr int TooltipFont = 20;
 
     Action AddCardsToHand(const std::vector<Card::CardIdentifier>& ids);
-    Action AddCardsToDeck(const std::vector<Card::CardIdentifier>& ids); 
+    Action AddCardToHand(Card::CardIdentifier id);
+    Action AddCardsToDeck(const std::vector<Card::CardIdentifier>& ids, bool topdeck = false); 
     Action Skip();
-    Action Sin();
     Action Die();
-    Action LoseHand();
+    Action ChangeHandSize(int amount);
     Action Heal(int amount);
     Action ForbiddenArt();
     Action Win();
     Action Cleanse(Card::CardIdentifier type);
     Action TakeDamage(int damage = 1);
+    Action Clone();
+    Action AddTool(Tool::Type);
 
     typedef std::vector<Action> Consequences;
 };

@@ -63,6 +63,18 @@ struct Resources : public std::array<int,3>
         (*this) = (*this) - other;
     }
 
+    bool operator >= (const Resources& other)
+    {
+        for (size_t r = 0; r < RESOURCE_NAME_SIZE; r ++)
+        {
+            if (other[r] > (*this)[r])
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
     operator bool() const
     {
         for (size_t r = 0; r < RESOURCE_NAME_SIZE; r ++)
@@ -147,6 +159,8 @@ struct CardList : public std::vector<CardPtr>
     void addCard(CardPtr ptr);
     void addCard(Card::CardIdentifier id);
     CardPtr removeCard(int index);
+
+    Resources countResources() const;
 };
 
 

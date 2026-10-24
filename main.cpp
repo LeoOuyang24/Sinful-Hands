@@ -50,14 +50,15 @@ int main(void)
 
     Player& player = Globals::player;
 
-    for (int i = 0; i < 3; i ++)
-    player.addTool(Tool::GLASSES);
-
     for (int i = 0; i < 2; i++)
     {
         player.addCard("Potato", true);
         player.addCard("Dagger",true);
+        player.addCard("Allowance",true);
     }
+
+    player.addTool(Tool::BINOCULARS);
+    player.addTool(Tool::JOKER);
     player.addCard("Allowance",true);
     player.addCard("Single Coin",true);
 

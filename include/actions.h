@@ -28,15 +28,18 @@ namespace Actions
     Action AddCardsToHand(const std::vector<Card::CardIdentifier>& ids);
     Action AddCardToHand(Card::CardIdentifier id);
     Action AddCardsToDeck(const std::vector<Card::CardIdentifier>& ids, bool topdeck = false); 
+    Action Random(const std::vector<Action>& actions); //randomly selects an option
     Action Skip();
     Action Die();
     Action ChangeHandSize(int amount);
     Action Heal(int amount);
-    Action ForbiddenArt();
+    Action ChangeMaxHealth(int amount, bool heal=true);
     Action Win();
     Action Cleanse(Card::CardIdentifier type);
+    Action ClearBoard();
     Action TakeDamage(int damage = 1);
     Action Clone();
+    Action ResetHunger();
     Action AddTool(Tool::Type);
 
     typedef std::vector<Action> Consequences;

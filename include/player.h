@@ -16,7 +16,7 @@ struct Player
 {
     static constexpr size_t MAX_HAND_SIZE = 11;
     static constexpr int MAX_PLAYER_HEALTH = 3;
-    static constexpr int MAX_PLAYER_HUNGER = 3;
+    static constexpr int MAX_PLAYER_HUNGER = 5;
 
     std::vector<Tool::Type> tools;
     int currentTool = -1; //index of the current tool
@@ -29,6 +29,7 @@ struct Player
     std::list<int> effects{}; //queued up effects
 
     int health = MAX_PLAYER_HEALTH;
+    int maxHealth = MAX_PLAYER_HEALTH;
     int hunger = MAX_PLAYER_HUNGER;
     int maxHandSize = MAX_HAND_SIZE;
     bool dead = false;
@@ -37,8 +38,15 @@ struct Player
     //add card to hand or board
     void addCard(CardPtr& ptr, bool hand);
     void addCard(Card::CardIdentifier, bool hand);
+    int getTrueHandSize() const { return hand.size() + board.size();}
 
     void changeHandSize(int amount);
+
+    void changeHealth(int amount);
+    void changeMaxHealth(int newVal);
+
+    void resetHunger();
+    bool isOverEncumbered();
 
     //add a card at the given index
     //-1 to insert randomly 
@@ -51,7 +59,6 @@ struct Player
 
     Resources getBoardResources() const;
 
-    void takeDamage(int damage);
     void addTool(Tool::Type);
     void setCurrentTool(int index);
     void removeCurrentTool();
@@ -70,13 +77,14 @@ struct Interface
     static constexpr Vector2 HAND_TOP_LEFT = {0, 1 - MARGINS.y - HAND_SECTION.y};
     static constexpr Vector2 DECK_SECTION = {0.6f,0.4f};
     static constexpr Vector2 DECK_TOP_LEFT = {.1f,MARGINS.y + .01};
+    static constexpr Vector4 TOOLBOX = {MARGINS.x,0.5,.1,HAND_TOP_LEFT.y - 0.5};
+
     static constexpr Vector2 HEALTH_AND_HUNGER_SECTION = {0.2f,HAND_TOP_LEFT.y - DECK_TOP_LEFT.y - DECK_SECTION.y};
-    static constexpr Vector2 HEALTH_AND_HUNGER_TOP_LEFT = {MARGINS.x, 0.5f};
+    static constexpr Vector2 HEALTH_AND_HUNGER_TOP_LEFT = {TOOLBOX.x + TOOLBOX.z + MARGINS.x, HAND_TOP_LEFT.y - HEALTH_AND_HUNGER_SECTION.y};
     static constexpr Vector2 BOARD_TOP_LEFT = {.5 - .35, 
                                                 DECK_TOP_LEFT.y + DECK_SECTION.y};
     static constexpr Vector2 BOARD_SECTION = {.7,HAND_TOP_LEFT.y - (DECK_TOP_LEFT.y + DECK_SECTION.y)};   
     
-    static constexpr Vector4 TOOLBOX = {MARGINS.x,0.5,.1,HAND_TOP_LEFT.y - 0.5};
 
     static constexpr float HAND_CARD_SEPARATION = .01f;
 

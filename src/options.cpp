@@ -174,11 +174,11 @@ Option::Option(const Actions::Consequences& cons_, std::function<bool(const Play
 
 void Option::effect(Player& player)
 {
+    verifier.postPick(player);
     for (auto& action : consequences)
         {
             action.effect(player);
         }
-    verifier.postPick(player);
 }
 
 bool Option::valid(const Player& player)

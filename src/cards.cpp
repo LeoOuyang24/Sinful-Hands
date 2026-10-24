@@ -131,3 +131,19 @@ CardPtr CardList::removeCard(int index)
     }
     return CardPtr();
 }
+
+Resources CardList::countResources() const
+{
+    Resources total{};
+    for (auto& ptr : (*this))
+    {
+        if (ptr.get())
+        {
+            for (int i = 0; i < Resources::RESOURCE_NAME_SIZE; i ++)
+            {
+                total[i] += ptr->resources[i];
+            }
+        }
+    }
+    return total;
+}

@@ -82,6 +82,17 @@ Actions::Action Actions::AddCardsToDeck(const std::vector<Card::CardIdentifier>&
     };
 }
 
+Actions::Action Actions::Random(const std::vector<Actions::Action>& actions)
+{
+    return 
+    {
+        .effect = [actions](Player& player)
+            {
+                actions[GetRandomValue(0,actions.size() - 1)].effect(player);
+            }
+    };
+}
+
 Actions::Action Actions::Skip()
 {
     return {
@@ -107,7 +118,7 @@ Actions::Action Actions::TakeDamage(int damage)
             DrawTexturePro(icon,{0,0,icon.width,icon.height},rect,{0.5,0.5},0,WHITE);           
         },
         [damage](Player& player){
-            player.takeDamage(damage);
+            player.changeHealth(-damage);
         },
         [damage](const Rectangle& rect)
         {
@@ -179,6 +190,22 @@ Actions::Action Actions::Cleanse(Card::CardIdentifier type)
     };  
 }
 
+Actions::Action Actions::ClearBoard()
+{
+    return {
+        [](const Rectangle& rect){
+            Texture2D icon = SpriteManager::getSprite("cleanse_icon.png");
+            DrawTexturePro(icon,{0,0,icon.width,icon.height},rect,{0.5,0.5},0,WHITE);           
+        },
+        [](Player& player){
+            player.board.clear();
+        },
+        [](const Rectangle& rect){
+            std::string message = "Clear all cards from the board";
+            DrawText(message.c_str(),rect.x, rect.y, TooltipFont, WHITE);
+        }   
+    };  
+}
 Actions::Action Actions::Heal(int amount)
 {
     return {
@@ -187,28 +214,32 @@ Actions::Action Actions::Heal(int amount)
             DrawTexturePro(icon,{0,0,icon.width,icon.height},rect,{0.5,0.5},0,WHITE);           
         },
         [amount](Player& player){
-            player.takeDamage(-amount);
+            player.changeHealth(amount);
         },
         [amount](const Rectangle& rect){
-            std::string message = "Restore " + std::to_string(amount) + " health";
+            std::string message =  "Restore " + std::to_string(amount) + " health";
             DrawText(message.c_str(),rect.x, rect.y, TooltipFont, WHITE);
         }       
     };
 }
 
-Actions::Action Actions::ForbiddenArt()
+Actions::Action Actions::ChangeMaxHealth(int amount, bool heal)
 {
     return {
          [](const Rectangle& rect){
-            Texture2D icon = SpriteManager::getSprite("forbidden_arts.png");
+            Texture2D icon = SpriteManager::getSprite("heal_icon.png");
             DrawTexturePro(icon,{0,0,icon.width,icon.height},rect,{0.5,0.5},0,WHITE);           
         },
-        [](Player& player){
-            player.addCardToDeck("Forbidden Arts");
-            player.addCardToDeck("Forbidden Arts");
+        [amount,heal](Player& player){
+            player.changeMaxHealth(amount);
+            if (heal)
+            {
+                player.changeHealth(amount);
+            }
         },
-        [](const Rectangle& rect){
-            DrawText("Shuffle 2 more\nForbidden Arts\ninto the deck",rect.x, rect.y, TooltipFont, WHITE);
+        [amount,heal](const Rectangle& rect){
+            std::string message = "Increase max health by " + std::to_string(amount) + (heal ? "." : " WITHOUT healing.");
+            DrawText(message.c_str(),rect.x, rect.y, TooltipFont, WHITE);
         }       
     };
 }
@@ -243,6 +274,16 @@ Actions::Action Actions::Clone()
             DrawText("Duplicate a single card",rect.x, rect.y, TooltipFont, WHITE);
         }       
     };       
+}
+
+Actions::Action Actions::ResetHunger()
+{
+    return 
+    {
+        .effect = [](Player& player){
+            player.resetHunger();
+        }
+    };
 }
 
 Actions::Action Actions::AddTool(Tool::Type type)

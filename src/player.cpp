@@ -41,6 +41,31 @@ void Player::changeHandSize(int amount)
     }
 }
 
+void Player::changeHealth(int amount)
+{
+    health = Clamp(health + amount,0,maxHealth);
+    if (health <= 0)
+    {
+        gameOver();
+    }
+}
+
+void Player::changeMaxHealth(int newVal)
+{
+    maxHealth += newVal;
+    changeHealth(health); //reset health to clamp to new max health value
+}
+
+void Player::resetHunger()
+{
+    hunger = MAX_PLAYER_HUNGER;
+}
+
+bool Player::isOverEncumbered()
+{
+    return getTrueHandSize() >= maxHandSize;
+}
+
 void Player::addCardToDeck(Card::CardIdentifier id, int index)
 {
     CardPtr ptr = CardsLookup::getCard(id);
@@ -68,14 +93,27 @@ void Player::addCardToDeck(Card::CardIdentifier id, int index)
 
 void Player::draw()
 {
-    if (deck.size() > 0)
+    if (currentEnemy && currentEnemy->name != "Starvation")
     {
-        currentEnemy = deck.removeCard(0);//.reset(static_cast<EnemyCard*>(topdeck.release()));
+        hunger -= 1 + isOverEncumbered();
+    }
+    if (hunger > 0)
+    {
+        if (deck.size() > 0)
+        {
+            currentEnemy = deck.removeCard(0);//.reset(static_cast<EnemyCard*>(topdeck.release()));
+        }
+        else
+        {
+            currentEnemy.reset();
+        }
     }
     else
     {
-        currentEnemy.reset();
+        currentEnemy = CardsLookup::getCard("Starvation");
     }
+
+
 }
 
 void Player::addEffect(EffectCard& effectCard)
@@ -113,27 +151,7 @@ EffectCard* Player::getEffect()
 
 Resources Player::getBoardResources() const
 {
-    Resources total{};
-    for (auto& ptr : board)
-    {
-        if (ptr.get())
-        {
-            for (int i = 0; i < Resources::RESOURCE_NAME_SIZE; i ++)
-            {
-                total[i] += ptr->resources[i];
-            }
-        }
-    }
-    return total;
-}
-
-void Player::takeDamage(int damage)
-{
-    health -= damage;
-    if (health <= 0)
-    {
-        gameOver();
-    }
+    return board.countResources();
 }
 
 void Player::addTool(Tool::Type type)
@@ -279,10 +297,26 @@ void Interface::update( Player& player)
         foresight = 0;
         return;
     }
-    else if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && (player.getCurrentTool() == Tool::GLASSES || player.getCurrentTool() == Tool::BINOCULARS))
+    else if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) )
     {
-        foresight = 3 + (2)*(player.getCurrentTool() == Tool::BINOCULARS);
-        player.removeCurrentTool();
+        if  (player.getCurrentTool() == Tool::GLASSES || player.getCurrentTool() == Tool::BINOCULARS)
+        {
+            foresight = 3 + (2)*(player.getCurrentTool() == Tool::BINOCULARS);
+            player.removeCurrentTool();
+        }
+        else if (player.getCurrentTool() == Tool::PORTAL)
+        {
+            for (auto it = player.deck.begin(); it != player.deck.end(); ++it)
+            {
+                if ((*it)->name == "Castle Gates")
+                {
+                    player.currentEnemy = std::move(*it);
+                    player.deck.erase(it);
+                    break;
+                }
+            }
+            player.removeCurrentTool();
+        }
     }
 
     Vector2 screenDimen = {GetScreenWidth(),GetScreenHeight()};
@@ -314,7 +348,7 @@ void Interface::update( Player& player)
     std::string message = "Cards Left In Deck: " + std::to_string(player.deck.size()) + (total > 0 ? ". Vengeful Spirits: " + std::to_string(total) : "");
     DrawRectangleLines(playerDeckRect.x,playerDeckRect.y,playerDeckRect.width,playerDeckRect.height,RED);
     DrawRectangle(playerDeckRect.x,playerDeckRect.y,playerDeckRect.height,playerDeckRect.height, {169,175,0,255});
-    bool hasTool = player.getCurrentTool() == Tool::AXE || player.getCurrentTool() == Tool::WAND;
+    bool hasTool = player.getCurrentTool() == Tool::AXE || player.getCurrentTool() == Tool::WAND || player.getCurrentTool() == Tool::JOKER;
     if (EnemyCard* ptr = static_cast<EnemyCard*>(player.currentEnemy.get()))
     {
         bool tooled = CheckCollisionPointRec(GetMousePosition(),playerDeckRect) && hasTool ;
@@ -325,7 +359,7 @@ void Interface::update( Player& player)
         DrawText(player.currentEnemy->name.c_str(),playerDeckRect.x,playerDeckRect.y - .1*playerDeckRect.height,.1*playerDeckRect.height,BLACK);
         if (tooled && IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
         {
-            //TODO: put wand, glove and amybe axe functionality in a function elsewhere to not bloat this file
+            //TODO: put wand, glove and other tool functionality in a function elsewhere to not bloat this file
             switch (player.getCurrentTool())
             {
                 case Tool::AXE:
@@ -339,6 +373,10 @@ void Interface::update( Player& player)
                     player.currentEnemy = CardsLookup::getCard(polymorphs[animal]);
                     break;
                 }
+                case Tool::JOKER:
+                    Tool::JokerEffect(player);
+                    break;
+
             }
             player.removeCurrentTool();
         }
@@ -406,23 +444,24 @@ void Interface::update( Player& player)
     //DrawRectangleLines(playerBoardRect.x, playerBoardRect.y, playerBoardRect.width, playerBoardRect.height,PURPLE);
 
 
-    int x = playerBoardRect.x + playerBoardRect.width*.01f;
-    int y = playerBoardRect.y + playerBoardRect.height*.9f - .2*playerStatsRect.width;
+    //int x = playerBoardRect.x + playerBoardRect.width*.01f;
+    //int y = playerBoardRect.y + playerBoardRect.height*.9f - .2*playerStatsRect.width;
+    int x = playerStatsRect.x + playerStatsRect.width*0.1f;
+    int y = playerStatsRect.y + playerStatsRect.height*0.1f;
     Texture2D heartIcon = SpriteManager::getSprite("health_icon.png");
+    Texture2D emptyHeartIcon = SpriteManager::getSprite("empty_health_icon.png");
     Texture2D hungerIcon = SpriteManager::getSprite("hunger_icon.png");
-    for (int i = 0; i < player.health; i ++)
+    for (int i = 0; i < player.maxHealth; i ++)
     {
-        DrawTexturePro(heartIcon,
-            {0,0,heartIcon.width,heartIcon.height},
-            {x + i*.2*playerStatsRect.width,y, .2*playerStatsRect.width, .2*playerStatsRect.width},{0.5,0.5},0,WHITE);
+        DrawSprite(i < player.health ? heartIcon : emptyHeartIcon,{x + i*.2*playerStatsRect.width,y, .2*playerStatsRect.width, .2*playerStatsRect.width});
     }
 
-    /*for (int i = 0; i < player.hunger; i ++)
+    for (int i = 0; i < player.hunger; i ++)
     {
         DrawTexturePro(hungerIcon,
             {0,0,hungerIcon.width,hungerIcon.height},
             {x + i*.2*playerStatsRect.width, y + .3*playerStatsRect.height, .2*playerStatsRect.width, .2*playerStatsRect.width},{0.5,0.5},0,WHITE);        
-    }*/
+    }
 
     if (heldCard)
     {
@@ -453,7 +492,7 @@ void Interface::update( Player& player)
     }
 
     message = std::to_string(player.hand.size() + player.board.size()) + "/" + std::to_string(player.maxHandSize);
-    DrawText(message.c_str(),playerHandRect.x + playerHandRect.width/2 - 10,playerHandRect.y,20,WHITE);
+    DrawText(message.c_str(),playerHandRect.x + playerHandRect.width/2 - 10,playerHandRect.y,20,player.isOverEncumbered() ? RED : WHITE);
 
     renderCardList(player.hand,playerHandRect);
     renderCardList(player.board,playerBoardRect);

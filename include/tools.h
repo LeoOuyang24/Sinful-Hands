@@ -9,6 +9,8 @@
 
 };*/
 
+struct Player;
+
 namespace Tool
 {
     enum Type : int
@@ -19,11 +21,14 @@ namespace Tool
         WAND,
         GLASSES,
         BINOCULARS,
+        PORTAL,
+        JOKER,
         TYPES,
         NONE
     };
 
     Texture2D getSprite(Type type);
+    void JokerEffect(Player& player);
 
 
 }

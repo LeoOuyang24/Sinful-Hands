@@ -12,6 +12,8 @@
 #include <raylib.h>
 #include <raymath.h>
 
+#include "sequencer.h"
+
 #include "include/camera.h"
 #include "include/frames.h"
 
@@ -22,7 +24,7 @@
 #include "include/actions.h"
 #include "include/options.h"
 #include "include/globals.h"
-#include "include/sequencer.h"
+//#include "include/sequencer.h"
 
 #define PLATFORM_DESKTOP
 
@@ -50,28 +52,7 @@ int main(void)
 
     Player& player = Globals::player;
 
-    for (int i = 0; i < 2; i++)
-    {
-        player.addCard("Potato", true);
-        player.addCard("Dagger",true);
-        player.addCard("Allowance",true);
-    }
-
-    player.addTool(Tool::BINOCULARS);
-    player.addTool(Tool::JOKER);
-    player.addCard("Allowance",true);
-    player.addCard("Single Coin",true);
-
-    for (int i = 0; i < CardsLookup::startingDeck.size(); i ++)
-    {
-        player.addCardToDeck(CardsLookup::startingDeck[i]);
-    }
-
-    player.currentEnemy = CardsLookup::getCard("Kind Vendor"); 
-    player.deck.insert(player.deck.begin(),CardsLookup::getCard("Castle Gates"));
-    player.deck.insert(player.deck.begin() + 1, CardsLookup::getCard("Fork in the Road"));
-
-    Interface interface;
+    Globals::reset();
 
     Texture2D bg = SpriteManager::getSprite("bg.png");
 
@@ -102,9 +83,9 @@ int main(void)
             ClearBackground(DARKGRAY);
             //DrawTexturePro(bg,{0,0,bg.width,bg.height},{0,0,GetScreenWidth(),GetScreenHeight()},{0.5,0.5},0,WHITE);
                 
-            interface.update(Globals::player);
+            Globals::interface.update(Globals::player);
 
-            Sequences::update();
+            Sequences::runRenders();
 
             DrawFPS(10, 10);
 

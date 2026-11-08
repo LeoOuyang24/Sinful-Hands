@@ -10,6 +10,9 @@
 
 OptionVerifier ResourceVerifier(const Resources& resources)
 {
+    //blank resources yields a non existent OptionVerifier
+    if (resources == Resources{0,0,0}) return {};
+
     return {
             [resources](const Player& player)
             {
@@ -89,11 +92,13 @@ OptionVerifier CardVerifier(Card::CardIdentifier id)
                 CardPtr ptr = CardsLookup::getCard(id);
                 if (ptr)
                 {
-                    //ptr->render({rect.x,rect.y},0,0.75);
-                    DrawTexturePro(ptr->cardArt,
-                        {0,0,ptr->cardArt.width,ptr->cardArt.height},
-                        {rect.x,rect.y,rect.width,rect.height},
-                        {0.5,0.5},0,WHITE);
+                    if (IsTextureValid(ptr->cardArt))
+                    {
+                        DrawTexturePro(ptr->cardArt,
+                            {0,0,ptr->cardArt.width,ptr->cardArt.height},
+                            {rect.x,rect.y,rect.width,rect.height},
+                            {0.5,0.5},0,WHITE);
+                    }
                 }
             }
     };    
@@ -122,6 +127,12 @@ void Option::render(const Rectangle& rect)
 
     if (name.size() > 0)
     {
+        const float fontSize = resultRect.height/5;
+        int textDimen = MeasureText(name.c_str(),fontSize);
+
+        DrawRectangle(resultRect.x,resultRect.y,textDimen + 2*margin,fontSize + 2*margin,RED);
+        DrawText(name.c_str(),resultRect.x + margin,resultRect.y + margin,fontSize,BLACK);
+        resultRect.x += MeasureText(name.c_str(),fontSize) + margin*3;
 
     }
 
@@ -157,17 +168,23 @@ void Option::render(const Rectangle& rect)
     
 }
 
-Option::Option(const Actions::Consequences& cons, const Resources& resources_ ) : consequences(cons), verifier{ResourceVerifier(resources_)}
+Option::Option(const Actions::Consequences& cons_, std::string name_) : Option(cons_,OptionVerifier{},name_)
 {
 
 }
 
-Option::Option(const Actions::Consequences& cons, OptionVerifier verifier_ ) : consequences(cons), verifier(verifier_)
+
+Option::Option(const Actions::Consequences& cons, const Resources& resources_, std::string name_  ) : consequences(cons), verifier{ResourceVerifier(resources_)}, name(name_)
 {
 
 }
 
-Option::Option(const Actions::Consequences& cons_, std::function<bool(const Player& player)> verifier_) : consequences(cons_), verifier({verifier_})
+Option::Option(const Actions::Consequences& cons, OptionVerifier verifier_ , std::string name_ ) : consequences(cons), verifier(verifier_), name(name_)
+{
+
+}
+
+Option::Option(const Actions::Consequences& cons_, std::function<bool(const Player& player)> verifier_, std::string name_ ) : consequences(cons_), verifier({verifier_}), name(name_)
 {
 
 }
@@ -246,19 +263,4 @@ bool EnemyCard::handleInput(const Vector2& mousePos, Player& player, const Vecto
 
     }
     return false;
-}
-
-EffectCard::EffectCard(const Actions::Consequences& effect_) : effect(effect_), Card("",{})
-{
-
-}
-
-void EffectCard::onEnterBoard(Player& player)
-{
-    player.addEffect(*this);
-}
-    
-void EffectCard::onEnterHand(Player& player)
-{
-    player.removeEffect(*this);
 }

@@ -5,6 +5,7 @@
 #include "../include/card_repo.h"
 #include "../include/sequencer.h"
 #include "../include/sprites.h"
+#include "../include/globals.h"
 
 auto CreateRenderIconFunction(std::string icon)
 {
@@ -62,7 +63,8 @@ Actions::Action Actions::AddCardsToDeck(const std::vector<Card::CardIdentifier>&
                 }
                 else
                 {
-                    player.addCardToDeck(ids[i]);
+                    //add the card, anywhere BUT the top deck
+                    player.addCardToDeck(ids[i],rand()%player.deck.size() + 1);
                 }
             }
         },
@@ -206,6 +208,27 @@ Actions::Action Actions::ClearBoard()
         }   
     };  
 }
+
+Actions::Action Actions::AddMetaCard()
+{
+    return {
+        [](const Rectangle& rect){
+            Texture2D icon = SpriteManager::getSprite("remember.png");
+            DrawTexturePro(icon,{0,0,icon.width,icon.height},rect,{0.5,0.5},0,WHITE);           
+        },
+        [](Player& player){
+            if (player.board.size() > 0)
+            {
+                Globals::addMetaCard(player.board[0]->name);
+            }
+        },
+        [](const Rectangle& rect){
+            std::string message = "Forget... for now.";
+            DrawText(message.c_str(),rect.x, rect.y, TooltipFont, WHITE);
+        }   
+    };  
+}
+
 Actions::Action Actions::Heal(int amount)
 {
     return {
@@ -280,18 +303,36 @@ Actions::Action Actions::ResetHunger()
 {
     return 
     {
-        .effect = [](Player& player){
+        [](const Rectangle& rect)
+        {
+            DrawSprite(SpriteManager::getSprite("hunger_icon.png"),rect);
+        },
+        [](Player& player)
+        {
             player.resetHunger();
+        },
+        [](const Rectangle& rect)
+        {
+            DrawText("Reset your hunger", rect.x,rect.y, TooltipFont, WHITE);
         }
+        
     };
 }
 
 Actions::Action Actions::AddTool(Tool::Type type)
 {
     return {
-        .effect = [type](Player& player)
+        [](const Rectangle& rect)
+        {
+            DrawSprite(SpriteManager::getSprite("add_tool_icon.png"),rect);
+        },
+        [type](Player& player)
         {
             player.addTool(type);
+        },
+        [](const Rectangle& rect)
+        {
+            DrawText("Gain a tool", rect.x,rect.y, TooltipFont, WHITE);
         }
     };
 }

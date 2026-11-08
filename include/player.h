@@ -26,14 +26,13 @@ struct Player
     CardList board;
     CardList hand;
 
-    std::list<int> effects{}; //queued up effects
-
     int health = MAX_PLAYER_HEALTH;
     int maxHealth = MAX_PLAYER_HEALTH;
     int hunger = MAX_PLAYER_HUNGER;
     int maxHandSize = MAX_HAND_SIZE;
     bool dead = false;
     bool won = false;
+    bool justResetHunger = false; //true if we just reset hunger 
 
     //add card to hand or board
     void addCard(CardPtr& ptr, bool hand);
@@ -53,10 +52,6 @@ struct Player
     void addCardToDeck(Card::CardIdentifier, int index = -1);
     void draw();
 
-    void addEffect(EffectCard& effectCard);
-    void removeEffect(EffectCard& effectCard);
-    EffectCard* getEffect();
-
     Resources getBoardResources() const;
 
     void addTool(Tool::Type);
@@ -66,6 +61,8 @@ struct Player
 
     void gameOver();
     void win();
+
+    void reset();
 };
 
 struct Interface
@@ -79,7 +76,7 @@ struct Interface
     static constexpr Vector2 DECK_TOP_LEFT = {.1f,MARGINS.y + .01};
     static constexpr Vector4 TOOLBOX = {MARGINS.x,0.5,.1,HAND_TOP_LEFT.y - 0.5};
 
-    static constexpr Vector2 HEALTH_AND_HUNGER_SECTION = {0.2f,HAND_TOP_LEFT.y - DECK_TOP_LEFT.y - DECK_SECTION.y};
+    static constexpr Vector2 HEALTH_AND_HUNGER_SECTION = {0.5f,.05f};
     static constexpr Vector2 HEALTH_AND_HUNGER_TOP_LEFT = {TOOLBOX.x + TOOLBOX.z + MARGINS.x, HAND_TOP_LEFT.y - HEALTH_AND_HUNGER_SECTION.y};
     static constexpr Vector2 BOARD_TOP_LEFT = {.5 - .35, 
                                                 DECK_TOP_LEFT.y + DECK_SECTION.y};

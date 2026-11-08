@@ -37,6 +37,7 @@ namespace Actions
     Action Win();
     Action Cleanse(Card::CardIdentifier type);
     Action ClearBoard();
+    Action AddMetaCard();
     Action TakeDamage(int damage = 1);
     Action Clone();
     Action ResetHunger();

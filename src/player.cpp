@@ -2,7 +2,9 @@
 #include "../include/options.h"
 #include "../include/card_repo.h"
 #include "../include/sprites.h"
-#include "../include/sequencer.h"
+#include "../include/globals.h"
+
+#include "sequencer.h"
 
 #include "raylib_helper.h"
 
@@ -53,12 +55,13 @@ void Player::changeHealth(int amount)
 void Player::changeMaxHealth(int newVal)
 {
     maxHealth += newVal;
-    changeHealth(health); //reset health to clamp to new max health value
+    changeHealth(0); //reset health to clamp to new max health value
 }
 
 void Player::resetHunger()
 {
     hunger = MAX_PLAYER_HUNGER;
+    justResetHunger = true;
 }
 
 bool Player::isOverEncumbered()
@@ -73,14 +76,13 @@ void Player::addCardToDeck(Card::CardIdentifier id, int index)
     {
         if (deck.size() > 1)
         {
-            int random = (index == -1) ? rand()%(deck.size()+1) : index;
-            if (random > deck.size()) //new last card
+            int random = (index == -1) ? rand()%(deck.size() + 1) : index;
+            if (random >= deck.size()) //new last card
             {
                 deck.push_back(std::move(ptr));
             }
             else //insert somewhere before the last card
             {
-                //TODO: Need to add an option so cards can't be added as the next card when inserted randomly
                 deck.insert(deck.begin() + random,std::move(ptr));
             }
         }
@@ -93,9 +95,13 @@ void Player::addCardToDeck(Card::CardIdentifier id, int index)
 
 void Player::draw()
 {
-    if (currentEnemy && currentEnemy->name != "Starvation")
+    if (currentEnemy && !justResetHunger)
     {
         hunger -= 1 + isOverEncumbered();
+    }
+    else
+    {
+        justResetHunger = false;
     }
     if (hunger > 0)
     {
@@ -114,39 +120,6 @@ void Player::draw()
     }
 
 
-}
-
-void Player::addEffect(EffectCard& effectCard)
-{
-    for (int i = 0; i < board.size(); i ++)
-    {
-        if (board[i].get() == &effectCard)
-        {
-            effects.push_front(i); //only add if the card is in the board. If this function somehow gets called from a card not on the board, ignore it
-        }
-    }
-}
-
-void Player::removeEffect(EffectCard& effectCard)
-{
-    for (auto it = effects.begin(); it != effects.end(); ++it)
-    {
-        int index = *it;
-        if (index < board.size() && index > 0)
-        {
-            if (board[index].get() != &effectCard)
-            {
-                std::cerr << "Warning: Removing effect for card #" << index << " is not the card we were expecting\n";
-            }
-            effects.erase(it);
-            break;
-        }
-    }
-}
-
-EffectCard* Player::getEffect()
-{
-    return effects.size() > 0 && *effects.begin() < board.size() && *effects.begin() >= 0 ? static_cast<EffectCard*>(board[*effects.begin()].get()) : nullptr;
 }
 
 Resources Player::getBoardResources() const
@@ -190,6 +163,21 @@ void Player::win()
     won = true;
 }
 
+void Player::reset()
+{
+    hand.clear();
+    board.clear();
+    deck.clear();
+    tools.clear();
+
+    health = MAX_PLAYER_HEALTH;
+    maxHealth = MAX_PLAYER_HEALTH;
+    hunger = MAX_PLAYER_HUNGER;
+    maxHandSize = MAX_HAND_SIZE;
+    dead = false;
+    won = false;
+}
+
 Rectangle Interface::getRegion(const Vector2& topLeft, const Vector2& section)
 {
     Vector2 screenDimen = {GetScreenWidth(),GetScreenHeight()};
@@ -199,7 +187,13 @@ Rectangle Interface::getRegion(const Vector2& topLeft, const Vector2& section)
 
 Rectangle Interface::getIthHandCardRect(int i, const Rectangle& handRect)
 {
-    return {handRect.x + (i+1)*(Card::CARD_DIMEN.x + HAND_CARD_SEPARATION*handRect.width), handRect.y + handRect.height/2 - Card::CARD_DIMEN.y/2,Card::CARD_DIMEN.x,Card::CARD_DIMEN.y};
+    float cardSpace = (Card::CARD_DIMEN.x + HAND_CARD_SEPARATION*handRect.width);
+
+    //TODO: remove this explicit player reference, will probably ahve to be a part of the UI refactor
+    float factor = Globals::player.hand.size()/2.0;
+    return {   handRect.x + handRect.width/2 - factor*Card::CARD_DIMEN.x - (factor - 0.5f)*HAND_CARD_SEPARATION + i*cardSpace, 
+                handRect.y + handRect.height/2 - Card::CARD_DIMEN.y/2,
+                Card::CARD_DIMEN.x,Card::CARD_DIMEN.y};
 }
 
 void Interface::handleRegion(CardList& lst, const Rectangle& rect)
@@ -272,6 +266,7 @@ void Interface::handleMouse(Player& player)
 
 void Interface::renderCardList(const CardList& lst, const Rectangle& rect)
 {
+    float startingX = rect.x + rect.width/2 - (lst.size()/2.0)*2*Card::CARD_BODY_DIMEN.x;
     for (int i = 0; i < lst.size(); i ++)
     {
         if (lst[i].get())
@@ -283,7 +278,8 @@ void Interface::renderCardList(const CardList& lst, const Rectangle& rect)
             }
             else
             {
-                lst[i]->render({cardRect.x,cardRect.y},0,1);
+
+                lst[i]->render( {cardRect.x,cardRect.y},0,1);
             }
         }
     }
@@ -329,7 +325,7 @@ void Interface::update( Player& player)
     Rectangle playerStatsRect = getRegion(HEALTH_AND_HUNGER_TOP_LEFT,HEALTH_AND_HUNGER_SECTION);
     Rectangle playerToolsRect = getRegion({TOOLBOX.x,TOOLBOX.y},{TOOLBOX.z,TOOLBOX.w});
 
-    //DrawRectangleLines(playerDeckRect.x,playerDeckRect.y,playerDeckRect.width,playerDeckRect.height,RED);
+    //DrawRectangleLines(playerBoardRect.x,playerBoardRect.y,playerBoardRect.width,playerBoardRect.height,RED);
 
     //DrawRectangle(playerStatsRect.x,playerStatsRect.y,playerStatsRect.width,playerStatsRect.height,DARKGREEN);
 
@@ -347,7 +343,7 @@ void Interface::update( Player& player)
 
     std::string message = "Cards Left In Deck: " + std::to_string(player.deck.size()) + (total > 0 ? ". Vengeful Spirits: " + std::to_string(total) : "");
     DrawRectangleLines(playerDeckRect.x,playerDeckRect.y,playerDeckRect.width,playerDeckRect.height,RED);
-    DrawRectangle(playerDeckRect.x,playerDeckRect.y,playerDeckRect.height,playerDeckRect.height, {169,175,0,255});
+    DrawRectangle(playerDeckRect.x,playerDeckRect.y,playerDeckRect.height,playerDeckRect.height, {239,250,171,255});
     bool hasTool = player.getCurrentTool() == Tool::AXE || player.getCurrentTool() == Tool::WAND || player.getCurrentTool() == Tool::JOKER;
     if (EnemyCard* ptr = static_cast<EnemyCard*>(player.currentEnemy.get()))
     {
@@ -384,7 +380,7 @@ void Interface::update( Player& player)
         {
             for (int i = 0; i < static_cast<EnemyCard*>(player.currentEnemy.get())->options.size(); i ++)
             {
-                float optionHeight = playerDeckRect.height*0.3333;
+                float optionHeight = playerDeckRect.height*0.3333*.75;
                 Rectangle optionRect = {playerDeckRect.x + playerDeckRect.height*1.5, 
                                     playerDeckRect.y + optionHeight*i,
                                     playerDeckRect.width - playerDeckRect.height,
@@ -446,21 +442,23 @@ void Interface::update( Player& player)
 
     //int x = playerBoardRect.x + playerBoardRect.width*.01f;
     //int y = playerBoardRect.y + playerBoardRect.height*.9f - .2*playerStatsRect.width;
-    int x = playerStatsRect.x + playerStatsRect.width*0.1f;
+    int x = playerStatsRect.x;
     int y = playerStatsRect.y + playerStatsRect.height*0.1f;
+    float statIconDimen = playerStatsRect.height;
     Texture2D heartIcon = SpriteManager::getSprite("health_icon.png");
     Texture2D emptyHeartIcon = SpriteManager::getSprite("empty_health_icon.png");
     Texture2D hungerIcon = SpriteManager::getSprite("hunger_icon.png");
     for (int i = 0; i < player.maxHealth; i ++)
     {
-        DrawSprite(i < player.health ? heartIcon : emptyHeartIcon,{x + i*.2*playerStatsRect.width,y, .2*playerStatsRect.width, .2*playerStatsRect.width});
+        DrawSprite(i < player.health ? heartIcon : emptyHeartIcon,{x + statIconDimen*i,y, statIconDimen, statIconDimen});
     }
 
     for (int i = 0; i < player.hunger; i ++)
     {
-        DrawTexturePro(hungerIcon,
-            {0,0,hungerIcon.width,hungerIcon.height},
-            {x + i*.2*playerStatsRect.width, y + .3*playerStatsRect.height, .2*playerStatsRect.width, .2*playerStatsRect.width},{0.5,0.5},0,WHITE);        
+        DrawSprite(hungerIcon,
+            {playerStatsRect.x + playerStatsRect.width - i*statIconDimen, 
+                y, 
+                statIconDimen, statIconDimen});    
     }
 
     if (heldCard)
@@ -522,20 +520,51 @@ void Interface::update( Player& player)
         {
             DrawText("YOU DIED",gameOver.x + .1*screenDimen.x,gameOver.y + .1*screenDimen.y,100,RED);
         }
-        Rectangle quitButton = {gameOver.x + gameOver.width/2 - 50, gameOver.y + gameOver.height*.75 - 50, 100, 100};
-        if (CheckCollisionPointRec(GetMousePosition(),quitButton))
+
+        Rectangle buttons[2] = {
+            {gameOver.x + gameOver.width/2 - 50 - 100, gameOver.y + gameOver.height*.75 - 50, 100, 100},
+            {gameOver.x + gameOver.width/2 + 50      , gameOver.y + gameOver.height*.75 - 50,100,100}
+        };
+
+        for (int i = 0; i < 2; i ++)
         {
-            DrawRectangle(quitButton.x,quitButton.y,quitButton.width,quitButton.height,RED);
-            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+            if (CheckCollisionPointRec(GetMousePosition(),buttons[i]))
             {
-                exit(0);
+                DrawRectangle(buttons[i].x,buttons[i].y,buttons[i].width,buttons[i].height,RED);
+                if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+                {
+                    switch (i)
+                    {
+                        case 0:
+                            exit(0);
+                        case 1:
+                            Sequences::add(false,[start=GetTime()](int x)
+                                {
+                                    DrawRectangle(0,0,GetScreenWidth(),GetScreenHeight(),{0,0,0,(std::min(1.0,GetTime() - start))*255});
+                                    return GetTime() - start >= 1;
+                                })->
+                                add(InitFunc([](double start, int x)
+                                {
+                                    DrawRectangle(0,0,GetScreenWidth(),GetScreenHeight(),{0,0,0,(1 -  std::min(1.0,GetTime() - start))*255});
+                                    return GetTime() - start >= 1;
+                                },[](){return GetTime();})).
+                                parallel(
+                                    [](int )
+                                    {
+                                        Globals::reset();
+                                        return true;
+                                    });
+                            break;
+                    }
+                }
             }
+            else
+            {
+                DrawRectangle(buttons[i].x,buttons[i].y,buttons[i].width,buttons[i].height,LIGHTGRAY);
+            }
+            std::string label = (i == 0) ? "Quit" : "Restart";
+            DrawText(label.c_str(),buttons[i].x,buttons[i].y,20,BLACK);
         }
-        else
-        {
-            DrawRectangle(quitButton.x,quitButton.y,quitButton.width,quitButton.height,LIGHTGRAY);
-        }
-         DrawText("Quit",quitButton.x + 10,quitButton.y + quitButton.height/2 - 10,20,BLACK);
     }
 
 

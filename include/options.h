@@ -34,11 +34,12 @@ struct Option
 {
     Actions::Consequences consequences;
     OptionVerifier verifier;
-    std::string name = "Hello";
+    std::string name = "Unnamed Option";
 
-    Option(const Actions::Consequences& cons_, OptionVerifier verifier = {});
-    Option(const Actions::Consequences& cons_, const Resources& resources);
-    Option(const Actions::Consequences& cons_, std::function<bool(const Player& player)> verifier_);
+    Option(const Actions::Consequences& cons_, std::string name_ = "");
+    Option(const Actions::Consequences& cons_, OptionVerifier verifier, std::string name_ = "");
+    Option(const Actions::Consequences& cons_, const Resources& resources, std::string name_ = "");
+    Option(const Actions::Consequences& cons_, std::function<bool(const Player& player)> verifier_, std::string name_ = "");
 
     //true if this option can be selected
     bool valid(const Player& player);
@@ -70,16 +71,6 @@ struct EnemyCard  : public Card
 
     //handle user input, returns trues if an option has been successfully selected
     bool handleInput(const Vector2& mousePos, Player& player, const Vector2& cardPos, float scale);
-};
-
-struct EffectCard : public Card
-{
-    Actions::Consequences effect;
-
-    EffectCard(const Actions::Consequences& effect_);
-
-    void onEnterBoard(Player& player);
-    void onEnterHand(Player& player);
 };
 
 #endif // OPTIONS_H
